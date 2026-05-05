@@ -1,17 +1,19 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Users, UsersRound, GraduationCap,
-  ClipboardList, CalendarCheck, CreditCard, Star,
+  ClipboardList, CalendarCheck, CreditCard, Star, UserCog, Banknote,
 } from 'lucide-react'
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/alumnos', icon: Users, label: 'Alumnos' },
+  { to: '/padres', icon: UserCog, label: 'Padres/Tutores' },
   { to: '/grupos', icon: UsersRound, label: 'Grupos' },
   { to: '/profesores', icon: GraduationCap, label: 'Profesores' },
   { to: '/inscripciones', icon: ClipboardList, label: 'Inscripciones' },
   { to: '/asistencia', icon: CalendarCheck, label: 'Asistencia' },
   { to: '/pagos', icon: CreditCard, label: 'Pagos' },
+  { to: '/sueldos', icon: Banknote, label: 'Sueldos' },
   { to: '/evaluaciones', icon: Star, label: 'Evaluaciones' },
 ]
 
@@ -22,7 +24,7 @@ export default function Sidebar() {
         <h1 className="text-2xl font-bold text-indigo-600">CREAR</h1>
         <p className="text-xs text-gray-500 mt-1">Academia de Danzas</p>
       </div>
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navItems.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
