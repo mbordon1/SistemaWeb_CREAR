@@ -12,7 +12,7 @@ export async function getAlumnos() {
 export async function getAlumnoById(id) {
   const { data, error } = await supabase
     .from('alumnos')
-    .select(`*, grupos (id, nombre, nivel), alumno_tutor (tutores (id, nombre, apellido, telefono, email))`)
+    .select(`*, grupos (id, nombre, nivel), alumnos_padres (padres (id, nombre, apellido, telefono, email))`)
     .eq('id', id)
     .single()
   if (error) throw error
