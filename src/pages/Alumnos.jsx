@@ -75,7 +75,7 @@ export default function Alumnos() {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Email inválido'
     if (!form.domicilio.trim()) e.domicilio = 'Obligatorio'
     if (!form.fecha_nacimiento) e.fecha_nacimiento = 'Obligatorio'
-    if (!form.grupo_id) e.grupo_id = 'Seleccioná un grupo'
+    if (!form.grupo_id) e.grupo_id = 'Selecioná un grupo'
     return e
   }
 
@@ -86,12 +86,8 @@ export default function Alumnos() {
     setGuardando(true)
     try {
       const payload = {
-        nombre: form.nombre.trim(),
-        apellido: form.apellido.trim(),
-        dni: form.dni.trim(),
-        telefono: form.telefono.trim(),
-        email: form.email.trim(),
-        domicilio: form.domicilio.trim(),
+        nombre: form.nombre.trim(), apellido: form.apellido.trim(), dni: form.dni.trim(),
+        telefono: form.telefono.trim(), email: form.email.trim(), domicilio: form.domicilio.trim(),
         fecha_nacimiento: form.fecha_nacimiento,
         fecha_alta: form.fecha_alta || new Date().toISOString(),
         grupo_id: form.grupo_id,
@@ -122,39 +118,39 @@ export default function Alumnos() {
 
   return (
     <div className="space-y-5">
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>}
+      {error && <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm">{error}</div>}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <div className="relative w-full sm:w-72">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-purple-400/60" />
           <input type="text" placeholder="Buscar por nombre o DNI..." value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            className="w-full pl-9 pr-3 py-2 bg-white/5 border border-purple-800/40 rounded-lg text-sm text-white placeholder-purple-400/50 focus:outline-none focus:ring-2 focus:ring-violet-500/60 transition-colors" />
         </div>
         <Button onClick={abrirCrear}><Plus size={16} />Nuevo Alumno</Button>
       </div>
-      <div className="bg-white rounded-xl border border-gray-200">
-        <div className="px-5 py-3 border-b border-gray-100">
-          <p className="text-sm text-gray-500">{alumnosFiltrados.length} alumno{alumnosFiltrados.length !== 1 ? 's' : ''}</p>
+      <div className="bg-[#1a1547]/80 rounded-xl border border-purple-800/30">
+        <div className="px-5 py-3 border-b border-purple-800/20">
+          <p className="text-sm text-purple-400/60">{alumnosFiltrados.length} alumno{alumnosFiltrados.length !== 1 ? 's' : ''}</p>
         </div>
         <Table>
           <Thead><tr><Th>Nombre</Th><Th>DNI</Th><Th>Teléfono</Th><Th>Email</Th><Th>Grupo</Th><Th className="text-right">Acciones</Th></tr></Thead>
           <Tbody>
             {alumnosFiltrados.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-400">No se encontraron alumnos</td></tr>
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-purple-400/50">No se encontraron alumnos</td></tr>
             ) : alumnosFiltrados.map((alumno) => (
-              <tr key={alumno.id} className="hover:bg-gray-50 transition-colors">
+              <tr key={alumno.id} className="hover:bg-white/3 transition-colors">
                 <Td>
-                  <p className="font-medium text-gray-900">{alumno.apellido}, {alumno.nombre}</p>
-                  {alumno.fecha_nacimiento && <p className="text-xs text-gray-400">Nac: {new Date(alumno.fecha_nacimiento + 'T00:00:00').toLocaleDateString('es-AR')}</p>}
+                  <p className="font-medium text-white">{alumno.apellido}, {alumno.nombre}</p>
+                  {alumno.fecha_nacimiento && <p className="text-xs text-purple-400/60">Nac: {new Date(alumno.fecha_nacimiento + 'T00:00:00').toLocaleDateString('es-AR')}</p>}
                 </Td>
                 <Td>{alumno.dni}</Td>
                 <Td>{alumno.telefono}</Td>
                 <Td>{alumno.email}</Td>
-                <Td>{alumno.grupos ? <Badge color="indigo">{alumno.grupos.nombre}</Badge> : <Badge color="gray">Sin grupo</Badge>}</Td>
+                <Td>{alumno.grupos ? <Badge color="blue">{alumno.grupos.nombre}</Badge> : <Badge color="gray">Sin grupo</Badge>}</Td>
                 <Td className="text-right">
                   <div className="flex items-center justify-end gap-2">
-                    <button onClick={() => abrirEditar(alumno)} className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded"><Pencil size={15} /></button>
-                    <button onClick={() => handleEliminar(alumno.id)} className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"><Trash2 size={15} /></button>
+                    <button onClick={() => abrirEditar(alumno)} className="p-1.5 text-purple-400 hover:text-violet-300 hover:bg-violet-500/10 rounded transition-colors"><Pencil size={15} /></button>
+                    <button onClick={() => handleEliminar(alumno.id)} className="p-1.5 text-purple-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"><Trash2 size={15} /></button>
                   </div>
                 </Td>
               </tr>
@@ -164,7 +160,7 @@ export default function Alumnos() {
       </div>
       <Modal isOpen={modalAbierto} onClose={() => setModalAbierto(false)} title={alumnoEditando ? 'Editar Alumno' : 'Nuevo Alumno'} size="lg">
         <form onSubmit={handleSubmit} className="space-y-4">
-          {errores.general && <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm">{errores.general}</div>}
+          {errores.general && <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-3 py-2 rounded text-sm">{errores.general}</div>}
           <div className="grid grid-cols-2 gap-4">
             <Input label="Nombre *" name="nombre" value={form.nombre} onChange={handleChange} error={errores.nombre} placeholder="Juan" />
             <Input label="Apellido *" name="apellido" value={form.apellido} onChange={handleChange} error={errores.apellido} placeholder="García" />

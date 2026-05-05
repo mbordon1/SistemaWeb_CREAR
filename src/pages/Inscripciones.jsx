@@ -40,8 +40,8 @@ export default function Inscripciones() {
   async function handleSubmit(e) {
     e.preventDefault()
     const e2 = {}
-    if (!form.alumno_id) e2.alumno_id = 'Seleccioná un alumno'
-    if (!form.grupo_id) e2.grupo_id = 'Seleccioná un grupo'
+    if (!form.alumno_id) e2.alumno_id = 'Selecioná un alumno'
+    if (!form.grupo_id) e2.grupo_id = 'Selecioná un grupo'
     if (Object.keys(e2).length > 0) { setErrores(e2); return }
     setGuardando(true); setMensajeError('')
     try {
@@ -68,17 +68,20 @@ export default function Inscripciones() {
         <Thead><tr><Th>Alumno</Th><Th>Grupo</Th><Th>Nivel</Th><Th>Fecha</Th><Th>Estado</Th><Th>Cambiar estado</Th></tr></Thead>
         <Tbody>
           {inscripciones.length === 0 ? (
-            <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-400">No hay inscripciones</td></tr>
+            <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-purple-400/50">No hay inscripciones</td></tr>
           ) : inscripciones.map((i) => (
-            <tr key={i.id} className="hover:bg-gray-50">
-              <Td><span className="font-medium">{i.alumnos?.apellido}, {i.alumnos?.nombre}</span><p className="text-xs text-gray-400">DNI: {i.alumnos?.dni}</p></Td>
+            <tr key={i.id} className="hover:bg-white/3 transition-colors">
+              <Td>
+                <span className="font-medium text-white">{i.alumnos?.apellido}, {i.alumnos?.nombre}</span>
+                <p className="text-xs text-purple-400/60">DNI: {i.alumnos?.dni}</p>
+              </Td>
               <Td>{i.grupos?.nombre}</Td>
               <Td>{i.grupos?.nivel}</Td>
               <Td>{i.fecha ? new Date(i.fecha).toLocaleDateString('es-AR') : '—'}</Td>
               <Td><Badge color={ESTADO_COLOR[i.estado] ?? 'gray'}>{i.estado}</Badge></Td>
               <Td>
                 <select value={i.estado} onChange={(e) => cambiarEstado(i.id, e.target.value)}
-                  className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                  className="text-xs bg-[#1a1547] border border-purple-800/40 text-purple-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-violet-500">
                   <option value="activa">Activa</option>
                   <option value="baja">Baja</option>
                   <option value="espera">Lista de espera</option>
@@ -90,7 +93,7 @@ export default function Inscripciones() {
       </Table>
       <Modal isOpen={modalAbierto} onClose={() => setModalAbierto(false)} title="Nueva Inscripción">
         <form onSubmit={handleSubmit} className="space-y-4">
-          {mensajeError && <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-2 rounded text-sm">{mensajeError}</div>}
+          {mensajeError && <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 px-3 py-2 rounded text-sm">{mensajeError}</div>}
           <Select label="Alumno *" name="alumno_id" value={form.alumno_id} onChange={handleChange} error={errores.alumno_id}>
             <option value="">Seleccionar alumno...</option>
             {alumnos.map((a) => <option key={a.id} value={a.id}>{a.apellido}, {a.nombre} — DNI: {a.dni}</option>)}

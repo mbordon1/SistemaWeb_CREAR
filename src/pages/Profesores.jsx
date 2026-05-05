@@ -79,12 +79,8 @@ export default function Profesores() {
     setGuardando(true)
     try {
       const payload = {
-        nombre: form.nombre.trim(),
-        apellido: form.apellido.trim(),
-        dni: form.dni.trim(),
-        telefono: form.telefono.trim(),
-        email: form.email.toLowerCase().trim(),
-        fecha_nacimiento: form.fecha_nacimiento,
+        nombre: form.nombre.trim(), apellido: form.apellido.trim(), dni: form.dni.trim(),
+        telefono: form.telefono.trim(), email: form.email.toLowerCase().trim(), fecha_nacimiento: form.fecha_nacimiento,
       }
       if (editando) { await updateProfesor(editando.id, payload) }
       else { await createProfesor(payload) }
@@ -111,24 +107,22 @@ export default function Profesores() {
       </div>
       <Table>
         <Thead>
-          <tr>
-            <Th>Nombre</Th><Th>DNI</Th><Th>Teléfono</Th><Th>Email</Th><Th>Fecha Nac.</Th><Th className="text-right">Acciones</Th>
-          </tr>
+          <tr><Th>Nombre</Th><Th>DNI</Th><Th>Teléfono</Th><Th>Email</Th><Th>Fecha Nac.</Th><Th className="text-right">Acciones</Th></tr>
         </Thead>
         <Tbody>
           {profesores.length === 0 ? (
-            <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-400">No hay profesores registrados</td></tr>
+            <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-purple-400/50">No hay profesores registrados</td></tr>
           ) : profesores.map((p) => (
-            <tr key={p.id} className="hover:bg-gray-50">
-              <Td><span className="font-medium">{p.apellido}, {p.nombre}</span></Td>
+            <tr key={p.id} className="hover:bg-white/3 transition-colors">
+              <Td><span className="font-medium text-white">{p.apellido}, {p.nombre}</span></Td>
               <Td>{p.dni}</Td>
               <Td>{p.telefono}</Td>
               <Td>{p.email}</Td>
               <Td>{formatearFecha(p.fecha_nacimiento)}</Td>
               <Td className="text-right">
                 <div className="flex items-center justify-end gap-2">
-                  <button onClick={() => abrirEditar(p)} className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded"><Pencil size={15} /></button>
-                  <button onClick={() => handleEliminar(p.id)} className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"><Trash2 size={15} /></button>
+                  <button onClick={() => abrirEditar(p)} className="p-1.5 text-purple-400 hover:text-violet-300 hover:bg-violet-500/10 rounded transition-colors"><Pencil size={15} /></button>
+                  <button onClick={() => handleEliminar(p.id)} className="p-1.5 text-purple-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"><Trash2 size={15} /></button>
                 </div>
               </Td>
             </tr>
@@ -138,7 +132,7 @@ export default function Profesores() {
       <Modal isOpen={modalAbierto} onClose={() => setModalAbierto(false)} title={editando ? 'Editar Profesor' : 'Nuevo Profesor'}>
         <form onSubmit={handleSubmit} className="space-y-4">
           {errores.general && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm">{errores.general}</div>
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-3 py-2 rounded text-sm">{errores.general}</div>
           )}
           <div className="grid grid-cols-2 gap-4">
             <Input label="Nombre *" name="nombre" value={form.nombre} onChange={handleChange} error={errores.nombre} />
