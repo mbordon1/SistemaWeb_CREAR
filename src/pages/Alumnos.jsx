@@ -52,7 +52,8 @@ export default function Alumnos() {
     setForm({
       nombre: alumno.nombre ?? '', apellido: alumno.apellido ?? '', dni: alumno.dni ?? '',
       telefono: alumno.telefono ?? '', email: alumno.email ?? '',
-      fecha_nacimiento: alumno.fecha_nacimiento ?? '', fecha_alta: alumno.fecha_alta ?? '',
+      fecha_nacimiento: alumno.fecha_nacimiento ?? '',
+      fecha_alta: alumno.fecha_alta ? alumno.fecha_alta.split('T')[0] : '',
       domicilio: alumno.domicilio ?? '', grupo_id: alumno.grupo_id ?? '',
     })
     setErrores({}); setModalAbierto(true)
@@ -66,9 +67,15 @@ export default function Alumnos() {
 
   function validar() {
     const e = {}
-    if (!form.nombre.trim()) e.nombre = 'El nombre es obligatorio'
-    if (!form.apellido.trim()) e.apellido = 'El apellido es obligatorio'
-    if (!form.dni.trim()) e.dni = 'El DNI es obligatorio'
+    if (!form.nombre.trim()) e.nombre = 'Obligatorio'
+    if (!form.apellido.trim()) e.apellido = 'Obligatorio'
+    if (!form.dni.trim()) e.dni = 'Obligatorio'
+    if (!form.telefono.trim()) e.telefono = 'Obligatorio'
+    if (!form.email.trim()) e.email = 'Obligatorio'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Email inválido'
+    if (!form.domicilio.trim()) e.domicilio = 'Obligatorio'
+    if (!form.fecha_nacimiento) e.fecha_nacimiento = 'Obligatorio'
+    if (!form.grupo_id) e.grupo_id = 'Seleccioná un grupo'
     return e
   }
 
@@ -79,10 +86,15 @@ export default function Alumnos() {
     setGuardando(true)
     try {
       const payload = {
-        ...form,
-        grupo_id: form.grupo_id || null, telefono: form.telefono || null,
-        email: form.email || null, domicilio: form.domicilio || null,
-        fecha_nacimiento: form.fecha_nacimiento || null,
+        nombre: form.nombre.trim(),
+        apellido: form.apellido.trim(),
+        dni: form.dni.trim(),
+        telefono: form.telefono.trim(),
+        email: form.email.trim(),
+        domicilio: form.domicilio.trim(),
+        fecha_nacimiento: form.fecha_nacimiento,
+        fecha_alta: form.fecha_alta || new Date().toISOString(),
+        grupo_id: form.grupo_id,
       }
       if (alumnoEditando) { await updateAlumno(alumnoEditando.id, payload) }
       else { await createAlumno(payload) }
@@ -133,11 +145,11 @@ export default function Alumnos() {
               <tr key={alumno.id} className="hover:bg-gray-50 transition-colors">
                 <Td>
                   <p className="font-medium text-gray-900">{alumno.apellido}, {alumno.nombre}</p>
-                  {alumno.fecha_nacimiento && <p className="text-xs text-gray-400">Nac: {new Date(alumno.fecha_nacimiento).toLocaleDateString('es-AR')}</p>}
+                  {alumno.fecha_nacimiento && <p className="text-xs text-gray-400">Nac: {new Date(alumno.fecha_nacimiento + 'T00:00:00').toLocaleDateString('es-AR')}</p>}
                 </Td>
                 <Td>{alumno.dni}</Td>
-                <Td>{alumno.telefono ?? <span className="text-gray-400">—</span>}</Td>
-                <Td>{alumno.email ?? <span className="text-gray-400">—</span>}</Td>
+                <Td>{alumno.telefono}</Td>
+                <Td>{alumno.email}</Td>
                 <Td>{alumno.grupos ? <Badge color="indigo">{alumno.grupos.nombre}</Badge> : <Badge color="gray">Sin grupo</Badge>}</Td>
                 <Td className="text-right">
                   <div className="flex items-center justify-end gap-2">
@@ -159,16 +171,16 @@ export default function Alumnos() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Input label="DNI *" name="dni" value={form.dni} onChange={handleChange} error={errores.dni} placeholder="12345678" />
-            <Input label="Teléfono" name="telefono" value={form.telefono} onChange={handleChange} placeholder="011-1234-5678" />
+            <Input label="Teléfono *" name="telefono" value={form.telefono} onChange={handleChange} error={errores.telefono} placeholder="011-1234-5678" />
           </div>
-          <Input label="Email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="alumno@email.com" />
-          <Input label="Domicilio" name="domicilio" value={form.domicilio} onChange={handleChange} placeholder="Calle 123, Ciudad" />
+          <Input label="Email *" name="email" type="email" value={form.email} onChange={handleChange} error={errores.email} placeholder="alumno@email.com" />
+          <Input label="Domicilio *" name="domicilio" value={form.domicilio} onChange={handleChange} error={errores.domicilio} placeholder="Calle 123, Ciudad" />
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Fecha de nacimiento" name="fecha_nacimiento" type="date" value={form.fecha_nacimiento} onChange={handleChange} />
+            <Input label="Fecha de nacimiento *" name="fecha_nacimiento" type="date" value={form.fecha_nacimiento} onChange={handleChange} error={errores.fecha_nacimiento} />
             <Input label="Fecha de alta" name="fecha_alta" type="date" value={form.fecha_alta} onChange={handleChange} />
           </div>
-          <Select label="Grupo asignado" name="grupo_id" value={form.grupo_id} onChange={handleChange}>
-            <option value="">Sin grupo asignado</option>
+          <Select label="Grupo asignado *" name="grupo_id" value={form.grupo_id} onChange={handleChange} error={errores.grupo_id}>
+            <option value="">Seleccionar grupo...</option>
             {grupos.map((g) => <option key={g.id} value={g.id}>{g.nombre} — {g.nivel}</option>)}
           </Select>
           <div className="flex justify-end gap-3 pt-2">
