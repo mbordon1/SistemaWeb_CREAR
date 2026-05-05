@@ -26,7 +26,11 @@ export default function Evaluaciones() {
   const [evaluacionExpandida, setEvaluacionExpandida] = useState(null)
   const [nombreCriterio, setNombreCriterio] = useState('')
   const [formPlantilla, setFormPlantilla] = useState({ nombre: '', grupo_id: '', criterios: [] })
-  const [formEva, setFormEva] = useState({ alumno_id: '', grupo_id: '', plantilla_id: '', fecha: new Date().toISOString().split('T')[0], tipo: 'parcial', observacion_general: '', recomendacion_general: '' })
+  const [formEva, setFormEva] = useState({
+    alumno_id: '', grupo_id: '', plantilla_id: '',
+    fecha: new Date().toISOString().split('T')[0],
+    tipo: 'parcial', observacion_general: '', recomendacion_general: ''
+  })
   const [notasPorCriterio, setNotasPorCriterio] = useState({})
   const [guardando, setGuardando] = useState(false)
 
@@ -73,8 +77,20 @@ export default function Evaluaciones() {
     if (!formEva.alumno_id || !formEva.plantilla_id) { alert('Seleccioná alumno y plantilla'); return }
     setGuardando(true)
     try {
-      const detalles = criteriosPlantilla.map((c) => ({ criterio_id: c.id, nota: Number(notasPorCriterio[c.id]?.nota ?? 0), observacion: notasPorCriterio[c.id]?.observacion ?? '' }))
-      await createEvaluacion({ alumno_id: formEva.alumno_id, grupo_id: formEva.grupo_id || null, plantilla_id: formEva.plantilla_id, fecha: formEva.fecha, tipo: formEva.tipo, observacion_general: formEva.observacion_general, recomendacion_general: formEva.recomendacion_general }, detalles)
+      const detalles = criteriosPlantilla.map((c) => ({
+        criterio_id: c.id,
+        nota: Number(notasPorCriterio[c.id]?.nota ?? 0),
+        observacion: notasPorCriterio[c.id]?.observacion ?? ''
+      }))
+      await createEvaluacion({
+        alumno_id: formEva.alumno_id,
+        grupo_id: formEva.grupo_id || null,
+        plantilla_id: formEva.plantilla_id,
+        fecha: formEva.fecha,
+        tipo: formEva.tipo,
+        observacion_general: formEva.observacion_general,
+        recomendacion_general: formEva.recomendacion_general
+      }, detalles)
       await cargar(); setModalEvaluacion(false)
       setFormEva({ alumno_id: '', grupo_id: '', plantilla_id: '', fecha: new Date().toISOString().split('T')[0], tipo: 'parcial', observacion_general: '', recomendacion_general: '' })
       setNotasPorCriterio({})
@@ -88,7 +104,9 @@ export default function Evaluaciones() {
       <div className="flex gap-1 bg-gray-100 p-1 rounded-lg w-fit">
         {TABS.map((t) => (
           <button key={t} onClick={() => setTab(t)}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${tab === t ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-600 hover:text-gray-800'}`}>
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              tab === t ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-600 hover:text-gray-800'
+            }`}>
             {t}
           </button>
         ))}
@@ -98,14 +116,15 @@ export default function Evaluaciones() {
         <div className="space-y-4">
           <div className="flex justify-end"><Button onClick={() => { setModalEvaluacion(true); setNotasPorCriterio({}) }}><Plus size={16} />Nueva Evaluación</Button></div>
           <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
-            {evaluaciones.length === 0 ? <p className="px-5 py-8 text-center text-sm text-gray-400">No hay evaluaciones registradas</p>
+            {evaluaciones.length === 0
+              ? <p className="px-5 py-8 text-center text-sm text-gray-400">No hay evaluaciones registradas</p>
               : evaluaciones.map((eva) => (
                 <div key={eva.id}>
                   <button className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors text-left"
                     onClick={() => setEvaluacionExpandida(evaluacionExpandida === eva.id ? null : eva.id)}>
                     <div>
                       <p className="font-medium text-gray-800">{eva.alumnos?.apellido}, {eva.alumnos?.nombre}</p>
-                      <p className="text-xs text-gray-500">{eva.grupos?.nombre} · {eva.plantillas_evaluacion?.nombre} · {new Date(eva.fecha).toLocaleDateString('es-AR')}</p>
+                      <p className="text-xs text-gray-500">{eva.grupos?.nombre} · {eva.plantillas_evaluacion?.nombre} · {new Date(eva.fecha + 'T00:00:00').toLocaleDateString('es-AR')}</p>
                     </div>
                     <div className="flex items-center gap-3">
                       <Badge color="blue">{eva.tipo}</Badge>
@@ -137,7 +156,8 @@ export default function Evaluaciones() {
         <div className="space-y-4">
           <div className="flex justify-end"><Button onClick={() => setModalPlantilla(true)}><Plus size={16} />Nueva Plantilla</Button></div>
           <div className="grid gap-4">
-            {plantillas.length === 0 ? <p className="text-center text-sm text-gray-400 py-8">No hay plantillas creadas</p>
+            {plantillas.length === 0
+              ? <p className="text-center text-sm text-gray-400 py-8">No hay plantillas creadas</p>
               : plantillas.map((p) => (
                 <div key={p.id} className="bg-white rounded-xl border border-gray-200 p-5">
                   <h3 className="font-semibold text-gray-800 mb-1">{p.nombre}</h3>
@@ -155,7 +175,8 @@ export default function Evaluaciones() {
         <div className="space-y-4">
           <div className="flex justify-end"><Button onClick={() => setModalCriterio(true)}><Plus size={16} />Nuevo Criterio</Button></div>
           <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
-            {criterios.length === 0 ? <p className="px-5 py-8 text-center text-sm text-gray-400">No hay criterios creados</p>
+            {criterios.length === 0
+              ? <p className="px-5 py-8 text-center text-sm text-gray-400">No hay criterios creados</p>
               : criterios.map((c) => <div key={c.id} className="px-5 py-3 text-sm text-gray-700">{c.nombre}</div>)}
           </div>
         </div>
@@ -181,7 +202,8 @@ export default function Evaluaciones() {
           <div>
             <p className="text-sm font-medium text-gray-700 mb-2">Criterios a incluir *</p>
             <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
-              {criterios.length === 0 ? <p className="text-sm text-gray-400">Primero creá criterios en la pestaña "Criterios"</p>
+              {criterios.length === 0
+                ? <p className="text-sm text-gray-400">Primero creá criterios en la pestaña "Criterios"</p>
                 : criterios.map((c) => (
                   <label key={c.id} className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-1 rounded">
                     <input type="checkbox" checked={formPlantilla.criterios.includes(c.id)} onChange={() => toggleCriterioPlantilla(c.id)} className="w-4 h-4 text-indigo-600 rounded" />
@@ -209,6 +231,10 @@ export default function Evaluaciones() {
               {plantillas.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
             </Select>
           </div>
+          <Select label="Grupo (opcional)" value={formEva.grupo_id} onChange={(e) => setFormEva(p => ({ ...p, grupo_id: e.target.value }))}>
+            <option value="">Sin grupo específico</option>
+            {grupos.map((g) => <option key={g.id} value={g.id}>{g.nombre}</option>)}
+          </Select>
           <div className="grid grid-cols-2 gap-4">
             <Input label="Fecha" type="date" value={formEva.fecha} onChange={(e) => setFormEva(p => ({ ...p, fecha: e.target.value }))} />
             <Select label="Tipo" value={formEva.tipo} onChange={(e) => setFormEva(p => ({ ...p, tipo: e.target.value }))}>

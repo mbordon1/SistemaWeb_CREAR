@@ -30,8 +30,31 @@ export async function generarCuotas(alumno_id, mes, monto, fecha_vencimiento) {
 }
 
 export async function registrarPago(cuota_id, pago) {
-  const { data, error } = await supabase.from('pagos').insert([{ cuota_id, ...pago }]).select().single()
+  const { data: pagoData, error } = await supabase
+    .from('pagos')
+    .insert([{ cuota_id, ...pago }])
+    .select().single()
   if (error) throw error
+
   await supabase.from('cuotas').update({ estado: 'pagada' }).eq('id', cuota_id)
+
+  const { count } = await supabase
+    .from('comprobantes')
+    .select('*', { count: 'exact', head: true })
+  const numero = `REC-${String((count ?? 0) + 1).padStart(4, '0')}`
+  const { data: comprobante } = await supabase
+    .from('comprobantes')
+    .insert([{ pago_id: pagoData.id, numero }])
+    .select().single()
+
+  return { ...pagoData, comprobante }
+}
+
+export async function getComprobantes() {
+  const { data, error } = await supabase
+    .from('comprobantes')
+    .select(`*, pagos (id, monto_pagado, metodo, fecha_pago, cuotas (mes, monto, alumnos (nombre, apellido)))`)
+    .order('fecha', { ascending: false })
+  if (error) throw error
   return data
 }

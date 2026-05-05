@@ -3,11 +3,13 @@ import { useLocation } from 'react-router-dom'
 const titles = {
   '/dashboard': 'Dashboard',
   '/alumnos': 'Gestión de Alumnos',
+  '/padres': 'Padres y Tutores',
   '/grupos': 'Gestión de Grupos',
   '/profesores': 'Gestión de Profesores',
   '/inscripciones': 'Inscripciones',
   '/asistencia': 'Registro de Asistencia',
   '/pagos': 'Pagos y Cuotas',
+  '/sueldos': 'Sueldos de Profesores',
   '/evaluaciones': 'Evaluaciones',
 }
 
