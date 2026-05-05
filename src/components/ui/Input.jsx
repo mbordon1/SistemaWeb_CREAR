@@ -1,14 +1,12 @@
 export default function Input({ label, error, className = '', ...props }) {
   return (
     <div className="space-y-1">
-      {label && <label className="block text-sm font-medium text-gray-700">{label}</label>}
+      {label && <label className="block text-xs font-medium text-purple-300/80 uppercase tracking-wide">{label}</label>}
       <input
-        className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition ${
-          error ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'
-        } ${className}`}
+        className={`w-full rounded-lg bg-white/5 border border-purple-800/40 text-white placeholder-purple-400/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/60 focus:border-violet-500/60 transition-colors ${error ? 'border-red-500/60' : ''} ${className}`}
         {...props}
       />
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-xs text-red-400">{error}</p>}
     </div>
   )
 }
