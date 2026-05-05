@@ -77,10 +77,10 @@ export default function Pagos() {
         <Thead><tr><Th>Alumno</Th><Th>Mes</Th><Th>Monto</Th><Th>Vencimiento</Th><Th>Estado</Th><Th>Acciones</Th></tr></Thead>
         <Tbody>
           {cuotas.length === 0 ? (
-            <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-400">No hay cuotas pendientes</td></tr>
+            <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-purple-400/50">No hay cuotas pendientes</td></tr>
           ) : cuotas.map((c) => (
-            <tr key={c.id} className="hover:bg-gray-50">
-              <Td><span className="font-medium">{c.alumnos?.apellido}, {c.alumnos?.nombre}</span></Td>
+            <tr key={c.id} className="hover:bg-white/3 transition-colors">
+              <Td><span className="font-medium text-white">{c.alumnos?.apellido}, {c.alumnos?.nombre}</span></Td>
               <Td>{c.mes}</Td>
               <Td className="font-semibold">${c.monto}</Td>
               <Td>{c.fecha_vencimiento ? new Date(c.fecha_vencimiento + 'T00:00:00').toLocaleDateString('es-AR') : '—'}</Td>
@@ -107,14 +107,11 @@ export default function Pagos() {
             <option value="">Seleccionar...</option>
             {alumnos.map((a) => <option key={a.id} value={a.id}>{a.apellido}, {a.nombre}</option>)}
           </Select>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Mes *</label>
-            <input
-              type="month"
-              value={formCuota.mes}
+          <div className="space-y-1">
+            <label className="block text-xs font-medium text-purple-300/80 uppercase tracking-wide">Mes *</label>
+            <input type="month" value={formCuota.mes}
               onChange={(e) => setFormCuota(p => ({ ...p, mes: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+              className="w-full px-3 py-2 bg-white/5 border border-purple-800/40 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/60 transition-colors" />
           </div>
           <Input label="Monto *" type="number" min="0" value={formCuota.monto} onChange={(e) => setFormCuota(p => ({ ...p, monto: e.target.value }))} />
           <Input label="Fecha de vencimiento" type="date" value={formCuota.fecha_vencimiento} onChange={(e) => setFormCuota(p => ({ ...p, fecha_vencimiento: e.target.value }))} />
@@ -128,9 +125,9 @@ export default function Pagos() {
       <Modal isOpen={modalPago} onClose={() => setModalPago(false)} title="Registrar Pago">
         <form onSubmit={handleRegistrarPago} className="space-y-4">
           {cuotaSeleccionada && (
-            <div className="bg-gray-50 rounded-lg p-3 text-sm">
-              <p className="font-medium">{cuotaSeleccionada.alumnos?.nombre} {cuotaSeleccionada.alumnos?.apellido}</p>
-              <p className="text-gray-500">Cuota: {cuotaSeleccionada.mes} — ${cuotaSeleccionada.monto}</p>
+            <div className="bg-white/5 border border-purple-800/20 rounded-lg p-3 text-sm">
+              <p className="font-medium text-white">{cuotaSeleccionada.alumnos?.nombre} {cuotaSeleccionada.alumnos?.apellido}</p>
+              <p className="text-purple-400/60">Cuota: {cuotaSeleccionada.mes} — ${cuotaSeleccionada.monto}</p>
             </div>
           )}
           <Input label="Monto pagado *" type="number" min="0" value={formPago.monto_pagado} onChange={(e) => setFormPago(p => ({ ...p, monto_pagado: e.target.value }))} />
@@ -152,21 +149,21 @@ export default function Pagos() {
         {comprobanteGenerado && (
           <div className="space-y-4">
             <div className="flex items-center justify-center py-4">
-              <div className="bg-green-50 rounded-full p-4">
-                <FileText size={32} className="text-green-600" />
+              <div className="bg-emerald-500/15 rounded-full p-4">
+                <FileText size={32} className="text-emerald-400" />
               </div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
+            <div className="bg-white/5 border border-purple-800/20 rounded-lg p-4 space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Número de comprobante:</span>
-                <span className="font-bold text-gray-800 text-base">{comprobanteGenerado.numero}</span>
+                <span className="text-purple-400/60">Número de comprobante:</span>
+                <span className="font-bold text-white text-base">{comprobanteGenerado.numero}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Fecha:</span>
-                <span className="text-gray-800">{new Date(comprobanteGenerado.fecha).toLocaleDateString('es-AR')}</span>
+                <span className="text-purple-400/60">Fecha:</span>
+                <span className="text-purple-100">{new Date(comprobanteGenerado.fecha).toLocaleDateString('es-AR')}</span>
               </div>
             </div>
-            <p className="text-xs text-center text-gray-400">El pago fue registrado y el comprobante generado exitosamente.</p>
+            <p className="text-xs text-center text-purple-500/50">El pago fue registrado y el comprobante generado exitosamente.</p>
             <div className="flex justify-end">
               <Button onClick={() => setModalComprobante(false)}>Cerrar</Button>
             </div>

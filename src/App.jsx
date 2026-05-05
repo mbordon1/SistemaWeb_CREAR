@@ -1,5 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { supabase } from './lib/supabase'
 import Layout from './components/layout/Layout'
+import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Alumnos from './pages/Alumnos'
 import Grupos from './pages/Grupos'
@@ -10,12 +13,28 @@ import Pagos from './pages/Pagos'
 import Evaluaciones from './pages/Evaluaciones'
 import Padres from './pages/Padres'
 import Sueldos from './pages/Sueldos'
+import Spinner from './components/ui/Spinner'
 
 export default function App() {
+  const [session, setSession] = useState(undefined)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setSession(session))
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const appLayout = session === undefined
+    ? <Spinner className="min-h-screen" />
+    : session
+      ? <Layout />
+      : <Navigate to="/login" replace />
+
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Layout />}>
+        <Route path="/login" element={session ? <Navigate to="/dashboard" replace /> : <Login />} />
+        <Route path="/" element={appLayout}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="alumnos" element={<Alumnos />} />

@@ -57,45 +57,45 @@ export default function Asistencia() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div className="bg-[#1a1547]/80 rounded-xl border border-purple-800/30 p-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Select label="Grupo" value={grupoId} onChange={(e) => setGrupoId(e.target.value)}>
             <option value="">Seleccionar grupo...</option>
             {grupos.map((g) => <option key={g.id} value={g.id}>{g.nombre} — {g.nivel}</option>)}
           </Select>
           <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">Fecha</label>
+            <label className="block text-xs font-medium text-purple-300/80 uppercase tracking-wide">Fecha</label>
             <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              className="w-full px-3 py-2 bg-white/5 border border-purple-800/40 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/60 transition-colors" />
           </div>
         </div>
       </div>
       {grupoId && (
-        <div className="bg-white rounded-xl border border-gray-200">
-          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div className="bg-[#1a1547]/80 rounded-xl border border-purple-800/30">
+          <div className="px-5 py-4 border-b border-purple-800/20 flex items-center justify-between">
             <div className="flex gap-4 text-sm">
-              <span className="text-green-600 font-medium">{presentes} presentes</span>
-              <span className="text-red-500 font-medium">{ausentes} ausentes</span>
+              <span className="text-emerald-400 font-medium">{presentes} presentes</span>
+              <span className="text-red-400 font-medium">{ausentes} ausentes</span>
             </div>
-            {guardado && <span className="text-sm text-green-600 font-medium">✓ Guardado</span>}
+            {guardado && <span className="text-sm text-emerald-400 font-medium">✓ Guardado</span>}
           </div>
           {loading ? <Spinner className="py-10" /> : alumnos.length === 0 ? (
-            <p className="px-5 py-8 text-center text-sm text-gray-400">No hay alumnos con inscripción activa en este grupo</p>
+            <p className="px-5 py-8 text-center text-sm text-purple-400/50">No hay alumnos con inscripción activa en este grupo</p>
           ) : (
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-purple-800/20">
               {alumnos.map((a) => {
                 const presente = asistencia[a.id] ?? true
                 return (
-                  <li key={a.id} className="flex items-center justify-between px-5 py-3 hover:bg-gray-50 cursor-pointer transition-colors" onClick={() => toggleAsistencia(a.id)}>
-                    <span className="text-sm font-medium text-gray-800">{a.apellido}, {a.nombre}</span>
-                    {presente ? <CheckCircle size={22} className="text-green-500" /> : <XCircle size={22} className="text-red-400" />}
+                  <li key={a.id} className="flex items-center justify-between px-5 py-3 hover:bg-white/3 cursor-pointer transition-colors" onClick={() => toggleAsistencia(a.id)}>
+                    <span className="text-sm font-medium text-white">{a.apellido}, {a.nombre}</span>
+                    {presente ? <CheckCircle size={22} className="text-emerald-400" /> : <XCircle size={22} className="text-red-400" />}
                   </li>
                 )
               })}
             </ul>
           )}
           {alumnos.length > 0 && (
-            <div className="px-5 py-4 border-t border-gray-100 flex justify-end">
+            <div className="px-5 py-4 border-t border-purple-800/20 flex justify-end">
               <Button onClick={guardar} disabled={guardando}><Save size={16} />{guardando ? 'Guardando...' : 'Guardar asistencia'}</Button>
             </div>
           )}

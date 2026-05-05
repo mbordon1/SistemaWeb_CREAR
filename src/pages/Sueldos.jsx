@@ -35,12 +35,7 @@ export default function Sueldos() {
 
   function abrirEditar(s) {
     setEditando(s)
-    setForm({
-      profesor_id: s.profesor_id,
-      periodo: s.periodo,
-      monto: String(s.monto),
-      clases_dictadas: String(s.clases_dictadas),
-    })
+    setForm({ profesor_id: s.profesor_id, periodo: s.periodo, monto: String(s.monto), clases_dictadas: String(s.clases_dictadas) })
     setErrores({}); setModalAbierto(true)
   }
 
@@ -52,7 +47,7 @@ export default function Sueldos() {
 
   function validar() {
     const e = {}
-    if (!form.profesor_id) e.profesor_id = 'Seleccioná un profesor'
+    if (!form.profesor_id) e.profesor_id = 'Selecioná un profesor'
     if (!form.periodo.trim()) e.periodo = 'Obligatorio'
     if (!form.monto || Number(form.monto) <= 0) e.monto = 'Ingresá un monto válido'
     if (!form.clases_dictadas || parseInt(form.clases_dictadas) < 0) e.clases_dictadas = 'Ingresá un valor válido'
@@ -66,10 +61,8 @@ export default function Sueldos() {
     setGuardando(true)
     try {
       const payload = {
-        profesor_id: form.profesor_id,
-        periodo: form.periodo.trim(),
-        monto: Number(form.monto),
-        clases_dictadas: parseInt(form.clases_dictadas, 10),
+        profesor_id: form.profesor_id, periodo: form.periodo.trim(),
+        monto: Number(form.monto), clases_dictadas: parseInt(form.clases_dictadas, 10),
       }
       if (editando) { await updateSueldo(editando.id, payload) }
       else { await createSueldo(payload) }
@@ -92,9 +85,9 @@ export default function Sueldos() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <div className="bg-white rounded-xl border border-gray-200 px-5 py-3">
-          <p className="text-xs text-gray-500">Total pagado (todos los períodos)</p>
-          <p className="text-2xl font-bold text-gray-800">${total.toLocaleString('es-AR')}</p>
+        <div className="bg-[#1a1547]/80 rounded-xl border border-purple-800/30 px-5 py-3">
+          <p className="text-xs text-purple-400/60">Total pagado (todos los períodos)</p>
+          <p className="text-2xl font-bold text-white">${total.toLocaleString('es-AR')}</p>
         </div>
         <Button onClick={abrirCrear}><Plus size={16} />Registrar Sueldo</Button>
       </div>
@@ -104,17 +97,17 @@ export default function Sueldos() {
         </Thead>
         <Tbody>
           {sueldos.length === 0 ? (
-            <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-400">No hay sueldos registrados</td></tr>
+            <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-purple-400/50">No hay sueldos registrados</td></tr>
           ) : sueldos.map((s) => (
-            <tr key={s.id} className="hover:bg-gray-50">
-              <Td><span className="font-medium">{s.profesores?.apellido}, {s.profesores?.nombre}</span></Td>
+            <tr key={s.id} className="hover:bg-white/3 transition-colors">
+              <Td><span className="font-medium text-white">{s.profesores?.apellido}, {s.profesores?.nombre}</span></Td>
               <Td>{s.periodo}</Td>
               <Td>{s.clases_dictadas} clases</Td>
               <Td className="font-semibold">${Number(s.monto).toLocaleString('es-AR')}</Td>
               <Td className="text-right">
                 <div className="flex items-center justify-end gap-2">
-                  <button onClick={() => abrirEditar(s)} className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded"><Pencil size={15} /></button>
-                  <button onClick={() => handleEliminar(s.id)} className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"><Trash2 size={15} /></button>
+                  <button onClick={() => abrirEditar(s)} className="p-1.5 text-purple-400 hover:text-violet-300 hover:bg-violet-500/10 rounded transition-colors"><Pencil size={15} /></button>
+                  <button onClick={() => handleEliminar(s.id)} className="p-1.5 text-purple-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"><Trash2 size={15} /></button>
                 </div>
               </Td>
             </tr>
@@ -124,23 +117,18 @@ export default function Sueldos() {
 
       <Modal isOpen={modalAbierto} onClose={() => setModalAbierto(false)} title={editando ? 'Editar Sueldo' : 'Registrar Sueldo'}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {errores.general && <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm">{errores.general}</div>}
+          {errores.general && <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-3 py-2 rounded text-sm">{errores.general}</div>}
           <Select label="Profesor *" name="profesor_id" value={form.profesor_id} onChange={handleChange} error={errores.profesor_id}>
             <option value="">Seleccionar...</option>
             {profesores.map((p) => <option key={p.id} value={p.id}>{p.apellido}, {p.nombre}</option>)}
           </Select>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Período *</label>
-            <input
-              type="month"
-              name="periodo"
-              value={form.periodo}
-              onChange={handleChange}
-              className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                errores.periodo ? 'border-red-400' : 'border-gray-300'
-              }`}
-            />
-            {errores.periodo && <p className="mt-1 text-xs text-red-600">{errores.periodo}</p>}
+          <div className="space-y-1">
+            <label className="block text-xs font-medium text-purple-300/80 uppercase tracking-wide">Período *</label>
+            <input type="month" name="periodo" value={form.periodo} onChange={handleChange}
+              className={`w-full px-3 py-2 bg-white/5 border rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/60 transition-colors ${
+                errores.periodo ? 'border-red-500/60' : 'border-purple-800/40'
+              }`} />
+            {errores.periodo && <p className="text-xs text-red-400">{errores.periodo}</p>}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Input label="Monto *" name="monto" type="number" min="0" step="0.01" value={form.monto} onChange={handleChange} error={errores.monto} placeholder="0.00" />

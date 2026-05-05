@@ -12,6 +12,8 @@ import Spinner from '../components/ui/Spinner'
 
 const TABS = ['Evaluaciones', 'Plantillas', 'Criterios']
 
+const inputDark = 'w-full px-3 py-2 bg-white/5 border border-purple-800/40 rounded-lg text-sm text-white placeholder-purple-400/50 focus:outline-none focus:ring-2 focus:ring-violet-500/60 transition-colors'
+
 export default function Evaluaciones() {
   const [tab, setTab] = useState('Evaluaciones')
   const [criterios, setCriterios] = useState([])
@@ -61,7 +63,7 @@ export default function Evaluaciones() {
 
   async function handleCrearPlantilla(e) {
     e.preventDefault()
-    if (!formPlantilla.nombre || formPlantilla.criterios.length === 0) { alert('Completá el nombre y seleccioná al menos un criterio'); return }
+    if (!formPlantilla.nombre || formPlantilla.criterios.length === 0) { alert('Completá el nombre y selecioná al menos un criterio'); return }
     setGuardando(true)
     try {
       await createPlantilla(formPlantilla.nombre, formPlantilla.grupo_id || null, formPlantilla.criterios)
@@ -74,7 +76,7 @@ export default function Evaluaciones() {
 
   async function handleCrearEvaluacion(e) {
     e.preventDefault()
-    if (!formEva.alumno_id || !formEva.plantilla_id) { alert('Seleccioná alumno y plantilla'); return }
+    if (!formEva.alumno_id || !formEva.plantilla_id) { alert('Selecioná alumno y plantilla'); return }
     setGuardando(true)
     try {
       const detalles = criteriosPlantilla.map((c) => ({
@@ -83,13 +85,9 @@ export default function Evaluaciones() {
         observacion: notasPorCriterio[c.id]?.observacion ?? ''
       }))
       await createEvaluacion({
-        alumno_id: formEva.alumno_id,
-        grupo_id: formEva.grupo_id || null,
-        plantilla_id: formEva.plantilla_id,
-        fecha: formEva.fecha,
-        tipo: formEva.tipo,
-        observacion_general: formEva.observacion_general,
-        recomendacion_general: formEva.recomendacion_general
+        alumno_id: formEva.alumno_id, grupo_id: formEva.grupo_id || null,
+        plantilla_id: formEva.plantilla_id, fecha: formEva.fecha, tipo: formEva.tipo,
+        observacion_general: formEva.observacion_general, recomendacion_general: formEva.recomendacion_general
       }, detalles)
       await cargar(); setModalEvaluacion(false)
       setFormEva({ alumno_id: '', grupo_id: '', plantilla_id: '', fecha: new Date().toISOString().split('T')[0], tipo: 'parcial', observacion_general: '', recomendacion_general: '' })
@@ -101,11 +99,11 @@ export default function Evaluaciones() {
 
   return (
     <div className="space-y-5">
-      <div className="flex gap-1 bg-gray-100 p-1 rounded-lg w-fit">
+      <div className="flex gap-1 bg-white/5 border border-purple-800/30 p-1 rounded-lg w-fit">
         {TABS.map((t) => (
           <button key={t} onClick={() => setTab(t)}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-              tab === t ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-600 hover:text-gray-800'
+            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+              tab === t ? 'bg-violet-600/30 text-violet-300 border border-violet-500/25' : 'text-purple-300/70 hover:text-purple-100 hover:bg-white/5'
             }`}>
             {t}
           </button>
@@ -115,35 +113,35 @@ export default function Evaluaciones() {
       {tab === 'Evaluaciones' && (
         <div className="space-y-4">
           <div className="flex justify-end"><Button onClick={() => { setModalEvaluacion(true); setNotasPorCriterio({}) }}><Plus size={16} />Nueva Evaluación</Button></div>
-          <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+          <div className="bg-[#1a1547]/80 rounded-xl border border-purple-800/30 divide-y divide-purple-800/20">
             {evaluaciones.length === 0
-              ? <p className="px-5 py-8 text-center text-sm text-gray-400">No hay evaluaciones registradas</p>
+              ? <p className="px-5 py-8 text-center text-sm text-purple-400/50">No hay evaluaciones registradas</p>
               : evaluaciones.map((eva) => (
                 <div key={eva.id}>
-                  <button className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors text-left"
+                  <button className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/3 transition-colors text-left"
                     onClick={() => setEvaluacionExpandida(evaluacionExpandida === eva.id ? null : eva.id)}>
                     <div>
-                      <p className="font-medium text-gray-800">{eva.alumnos?.apellido}, {eva.alumnos?.nombre}</p>
-                      <p className="text-xs text-gray-500">{eva.grupos?.nombre} · {eva.plantillas_evaluacion?.nombre} · {new Date(eva.fecha + 'T00:00:00').toLocaleDateString('es-AR')}</p>
+                      <p className="font-medium text-white">{eva.alumnos?.apellido}, {eva.alumnos?.nombre}</p>
+                      <p className="text-xs text-purple-400/60">{eva.grupos?.nombre} · {eva.plantillas_evaluacion?.nombre} · {new Date(eva.fecha + 'T00:00:00').toLocaleDateString('es-AR')}</p>
                     </div>
                     <div className="flex items-center gap-3">
                       <Badge color="blue">{eva.tipo}</Badge>
-                      {evaluacionExpandida === eva.id ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                      {evaluacionExpandida === eva.id ? <ChevronDown size={16} className="text-purple-400" /> : <ChevronRight size={16} className="text-purple-400" />}
                     </div>
                   </button>
                   {evaluacionExpandida === eva.id && (
                     <div className="px-5 pb-4 space-y-3">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {eva.evaluacion_detalle?.map((d) => (
-                          <div key={d.criterio_id} className="bg-gray-50 rounded-lg p-3">
-                            <p className="text-xs font-semibold text-gray-500 uppercase">{d.criterios?.nombre}</p>
-                            <p className="text-xl font-bold text-indigo-600">{d.nota}<span className="text-sm text-gray-400">/10</span></p>
-                            {d.observacion && <p className="text-xs text-gray-600 mt-1">{d.observacion}</p>}
+                          <div key={d.criterio_id} className="bg-white/5 rounded-lg p-3">
+                            <p className="text-xs font-semibold text-purple-400/70 uppercase">{d.criterios?.nombre}</p>
+                            <p className="text-xl font-bold text-violet-300">{d.nota}<span className="text-sm text-purple-400/60">/10</span></p>
+                            {d.observacion && <p className="text-xs text-purple-300/70 mt-1">{d.observacion}</p>}
                           </div>
                         ))}
                       </div>
-                      {eva.observacion_general && <p className="text-sm text-gray-700"><strong>Observación:</strong> {eva.observacion_general}</p>}
-                      {eva.recomendacion_general && <p className="text-sm text-gray-700"><strong>Recomendación:</strong> {eva.recomendacion_general}</p>}
+                      {eva.observacion_general && <p className="text-sm text-purple-200"><strong className="text-white">Observación:</strong> {eva.observacion_general}</p>}
+                      {eva.recomendacion_general && <p className="text-sm text-purple-200"><strong className="text-white">Recomendación:</strong> {eva.recomendacion_general}</p>}
                     </div>
                   )}
                 </div>
@@ -157,13 +155,13 @@ export default function Evaluaciones() {
           <div className="flex justify-end"><Button onClick={() => setModalPlantilla(true)}><Plus size={16} />Nueva Plantilla</Button></div>
           <div className="grid gap-4">
             {plantillas.length === 0
-              ? <p className="text-center text-sm text-gray-400 py-8">No hay plantillas creadas</p>
+              ? <p className="text-center text-sm text-purple-400/50 py-8">No hay plantillas creadas</p>
               : plantillas.map((p) => (
-                <div key={p.id} className="bg-white rounded-xl border border-gray-200 p-5">
-                  <h3 className="font-semibold text-gray-800 mb-1">{p.nombre}</h3>
-                  {p.grupos && <p className="text-xs text-gray-500 mb-3">Grupo: {p.grupos.nombre}</p>}
+                <div key={p.id} className="bg-[#1a1547]/80 rounded-xl border border-purple-800/30 p-5">
+                  <h3 className="font-semibold text-white mb-1">{p.nombre}</h3>
+                  {p.grupos && <p className="text-xs text-purple-400/60 mb-3">Grupo: {p.grupos.nombre}</p>}
                   <div className="flex flex-wrap gap-2">
-                    {p.plantilla_criterios?.map((pc) => <Badge key={pc.criterio_id} color="indigo">{pc.criterios?.nombre}</Badge>)}
+                    {p.plantilla_criterios?.map((pc) => <Badge key={pc.criterio_id} color="blue">{pc.criterios?.nombre}</Badge>)}
                   </div>
                 </div>
               ))}
@@ -174,10 +172,10 @@ export default function Evaluaciones() {
       {tab === 'Criterios' && (
         <div className="space-y-4">
           <div className="flex justify-end"><Button onClick={() => setModalCriterio(true)}><Plus size={16} />Nuevo Criterio</Button></div>
-          <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+          <div className="bg-[#1a1547]/80 rounded-xl border border-purple-800/30 divide-y divide-purple-800/20">
             {criterios.length === 0
-              ? <p className="px-5 py-8 text-center text-sm text-gray-400">No hay criterios creados</p>
-              : criterios.map((c) => <div key={c.id} className="px-5 py-3 text-sm text-gray-700">{c.nombre}</div>)}
+              ? <p className="px-5 py-8 text-center text-sm text-purple-400/50">No hay criterios creados</p>
+              : criterios.map((c) => <div key={c.id} className="px-5 py-3 text-sm text-purple-200">{c.nombre}</div>)}
           </div>
         </div>
       )}
@@ -200,14 +198,15 @@ export default function Evaluaciones() {
             {grupos.map((g) => <option key={g.id} value={g.id}>{g.nombre}</option>)}
           </Select>
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">Criterios a incluir *</p>
-            <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
+            <p className="text-xs font-medium text-purple-300/80 uppercase tracking-wide mb-2">Criterios a incluir *</p>
+            <div className="space-y-2 max-h-48 overflow-y-auto bg-white/5 border border-purple-800/30 rounded-lg p-3">
               {criterios.length === 0
-                ? <p className="text-sm text-gray-400">Primero creá criterios en la pestaña "Criterios"</p>
+                ? <p className="text-sm text-purple-400/50">Primero creá criterios en la pestaña "Criterios"</p>
                 : criterios.map((c) => (
-                  <label key={c.id} className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-1 rounded">
-                    <input type="checkbox" checked={formPlantilla.criterios.includes(c.id)} onChange={() => toggleCriterioPlantilla(c.id)} className="w-4 h-4 text-indigo-600 rounded" />
-                    <span className="text-sm text-gray-700">{c.nombre}</span>
+                  <label key={c.id} className="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-1 rounded">
+                    <input type="checkbox" checked={formPlantilla.criterios.includes(c.id)} onChange={() => toggleCriterioPlantilla(c.id)}
+                      className="w-4 h-4 accent-violet-500 rounded" />
+                    <span className="text-sm text-purple-200">{c.nombre}</span>
                   </label>
                 ))}
             </div>
@@ -245,34 +244,34 @@ export default function Evaluaciones() {
           </div>
           {criteriosPlantilla.length > 0 && (
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-3">Notas por criterio (0–10)</p>
+              <p className="text-xs font-medium text-purple-300/80 uppercase tracking-wide mb-3">Notas por criterio (0–10)</p>
               <div className="space-y-3">
                 {criteriosPlantilla.map((c) => (
-                  <div key={c.id} className="grid grid-cols-3 gap-3 items-center bg-gray-50 rounded-lg p-3">
-                    <span className="text-sm font-medium text-gray-700">{c.nombre}</span>
+                  <div key={c.id} className="grid grid-cols-3 gap-3 items-center bg-white/5 rounded-lg p-3">
+                    <span className="text-sm font-medium text-purple-200">{c.nombre}</span>
                     <input type="number" min="0" max="10" step="0.5" placeholder="Nota"
                       value={notasPorCriterio[c.id]?.nota ?? ''}
                       onChange={(e) => setNotasPorCriterio(prev => ({ ...prev, [c.id]: { ...prev[c.id], nota: e.target.value } }))}
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                      className={inputDark} />
                     <input type="text" placeholder="Observación (opcional)"
                       value={notasPorCriterio[c.id]?.observacion ?? ''}
                       onChange={(e) => setNotasPorCriterio(prev => ({ ...prev, [c.id]: { ...prev[c.id], observacion: e.target.value } }))}
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                      className={inputDark} />
                   </div>
                 ))}
               </div>
             </div>
           )}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Observación general</label>
+          <div className="space-y-1">
+            <label className="block text-xs font-medium text-purple-300/80 uppercase tracking-wide">Observación general</label>
             <textarea value={formEva.observacion_general} onChange={(e) => setFormEva(p => ({ ...p, observacion_general: e.target.value }))} rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+              className={`${inputDark} resize-none`}
               placeholder="Observación general sobre el alumno..." />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Recomendación</label>
+          <div className="space-y-1">
+            <label className="block text-xs font-medium text-purple-300/80 uppercase tracking-wide">Recomendación</label>
             <textarea value={formEva.recomendacion_general} onChange={(e) => setFormEva(p => ({ ...p, recomendacion_general: e.target.value }))} rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+              className={`${inputDark} resize-none`}
               placeholder="Recomendaciones para el alumno..." />
           </div>
           <div className="flex justify-end gap-3 pt-2">

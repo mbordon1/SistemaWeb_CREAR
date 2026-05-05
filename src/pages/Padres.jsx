@@ -70,10 +70,8 @@ export default function Padres() {
     setGuardando(true)
     try {
       const payload = {
-        nombre: form.nombre.trim(),
-        apellido: form.apellido.trim(),
-        telefono: form.telefono.trim(),
-        email: form.email.trim() || null,
+        nombre: form.nombre.trim(), apellido: form.apellido.trim(),
+        telefono: form.telefono.trim(), email: form.email.trim() || null,
       }
       if (editando) { await updatePadre(editando.id, payload) }
       else { await createPadre(payload) }
@@ -117,17 +115,17 @@ export default function Padres() {
         </Thead>
         <Tbody>
           {padres.length === 0 ? (
-            <tr><td colSpan={4} className="px-4 py-8 text-center text-sm text-gray-400">No hay padres/tutores registrados</td></tr>
+            <tr><td colSpan={4} className="px-4 py-8 text-center text-sm text-purple-400/50">No hay padres/tutores registrados</td></tr>
           ) : padres.map((p) => (
-            <tr key={p.id} className="hover:bg-gray-50">
-              <Td><span className="font-medium">{p.apellido}, {p.nombre}</span></Td>
+            <tr key={p.id} className="hover:bg-white/3 transition-colors">
+              <Td><span className="font-medium text-white">{p.apellido}, {p.nombre}</span></Td>
               <Td>{p.telefono}</Td>
-              <Td>{p.email ?? <span className="text-gray-400">—</span>}</Td>
+              <Td>{p.email ?? <span className="text-purple-500/50">—</span>}</Td>
               <Td className="text-right">
                 <div className="flex items-center justify-end gap-2">
-                  <button onClick={() => abrirVincular(p)} className="p-1.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded" title="Vincular con alumno"><Link size={15} /></button>
-                  <button onClick={() => abrirEditar(p)} className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded"><Pencil size={15} /></button>
-                  <button onClick={() => handleEliminar(p.id)} className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"><Trash2 size={15} /></button>
+                  <button onClick={() => abrirVincular(p)} className="p-1.5 text-purple-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded transition-colors" title="Vincular con alumno"><Link size={15} /></button>
+                  <button onClick={() => abrirEditar(p)} className="p-1.5 text-purple-400 hover:text-violet-300 hover:bg-violet-500/10 rounded transition-colors"><Pencil size={15} /></button>
+                  <button onClick={() => handleEliminar(p.id)} className="p-1.5 text-purple-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"><Trash2 size={15} /></button>
                 </div>
               </Td>
             </tr>
@@ -137,7 +135,7 @@ export default function Padres() {
 
       <Modal isOpen={modalAbierto} onClose={() => setModalAbierto(false)} title={editando ? 'Editar Padre/Tutor' : 'Nuevo Padre/Tutor'}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {errores.general && <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm">{errores.general}</div>}
+          {errores.general && <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-3 py-2 rounded text-sm">{errores.general}</div>}
           <div className="grid grid-cols-2 gap-4">
             <Input label="Nombre *" name="nombre" value={form.nombre} onChange={handleChange} error={errores.nombre} />
             <Input label="Apellido *" name="apellido" value={form.apellido} onChange={handleChange} error={errores.apellido} />
@@ -154,14 +152,14 @@ export default function Padres() {
       <Modal isOpen={modalVincular} onClose={() => setModalVincular(false)} title="Vincular con Alumno">
         <form onSubmit={handleVincular} className="space-y-4">
           {padreVincular && (
-            <p className="text-sm text-gray-600">Padre/Tutor: <strong>{padreVincular.apellido}, {padreVincular.nombre}</strong></p>
+            <p className="text-sm text-purple-300/80">Padre/Tutor: <strong className="text-white">{padreVincular.apellido}, {padreVincular.nombre}</strong></p>
           )}
           <Select label="Alumno" value={alumnoSeleccionado} onChange={(e) => setAlumnoSeleccionado(e.target.value)}>
             <option value="">Seleccionar alumno...</option>
             {alumnos.map((a) => <option key={a.id} value={a.id}>{a.apellido}, {a.nombre} — DNI: {a.dni}</option>)}
           </Select>
           {mensajeVincular && (
-            <p className={`text-sm ${mensajeVincular.includes('exitosamente') ? 'text-green-600' : 'text-red-600'}`}>{mensajeVincular}</p>
+            <p className={`text-sm ${mensajeVincular.includes('exitosamente') ? 'text-emerald-400' : 'text-red-400'}`}>{mensajeVincular}</p>
           )}
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="secondary" onClick={() => setModalVincular(false)}>Cerrar</Button>
