@@ -11,10 +11,7 @@ import Badge from '../components/ui/Badge'
 import Spinner from '../components/ui/Spinner'
 
 const NIVELES = ['Inicial', 'Intermedio', 'Avanzado']
-
-const FORM_INICIAL = {
-  nombre: '', nivel: '', horario: '', descripcion: '', profesor_id: '', capacidad_maxima: ''
-}
+const FORM_INICIAL = { nombre: '', nivel: '', horario: '', descripcion: '', profesor_id: '', capacidad_maxima: '' }
 
 export default function Grupos() {
   const [grupos, setGrupos] = useState([])
@@ -30,20 +27,16 @@ export default function Grupos() {
 
   async function cargarDatos() {
     setLoading(true)
-    try {
-      const [g, p] = await Promise.all([getGrupos(), getProfesores()])
-      setGrupos(g); setProfesores(p)
-    } finally { setLoading(false) }
+    try { const [g, p] = await Promise.all([getGrupos(), getProfesores()]); setGrupos(g); setProfesores(p) }
+    finally { setLoading(false) }
   }
 
   function abrirCrear() { setEditando(null); setForm(FORM_INICIAL); setErrores({}); setModalAbierto(true) }
 
   function abrirEditar(g) {
     setEditando(g)
-    setForm({
-      nombre: g.nombre ?? '', nivel: g.nivel ?? '', horario: g.horario ?? '',
-      descripcion: g.descripcion ?? '', profesor_id: g.profesor_id ?? '', capacidad_maxima: g.capacidad_maxima ?? ''
-    })
+    setForm({ nombre: g.nombre ?? '', nivel: g.nivel ?? '', horario: g.horario ?? '',
+      descripcion: g.descripcion ?? '', profesor_id: g.profesor_id ?? '', capacidad_maxima: g.capacidad_maxima ?? '' })
     setErrores({}); setModalAbierto(true)
   }
 
@@ -57,19 +50,16 @@ export default function Grupos() {
     e.preventDefault()
     const e2 = {}
     if (!form.nombre.trim()) e2.nombre = 'Obligatorio'
-    if (!form.nivel) e2.nivel = 'Selecioná un nivel'
+    if (!form.nivel) e2.nivel = 'Seleccioná un nivel'
     if (!form.horario.trim()) e2.horario = 'Obligatorio'
     if (!form.descripcion.trim()) e2.descripcion = 'Obligatorio'
-    if (!form.profesor_id) e2.profesor_id = 'Selecioná un profesor'
+    if (!form.profesor_id) e2.profesor_id = 'Seleccioná un profesor'
     if (!form.capacidad_maxima) e2.capacidad_maxima = 'Obligatorio'
     if (Object.keys(e2).length > 0) { setErrores(e2); return }
     setGuardando(true)
     try {
-      const payload = {
-        nombre: form.nombre.trim(), nivel: form.nivel,
-        horario: form.horario.trim(), descripcion: form.descripcion.trim(),
-        profesor_id: form.profesor_id, capacidad_maxima: Number(form.capacidad_maxima),
-      }
+      const payload = { nombre: form.nombre.trim(), nivel: form.nivel, horario: form.horario.trim(),
+        descripcion: form.descripcion.trim(), profesor_id: form.profesor_id, capacidad_maxima: Number(form.capacidad_maxima) }
       if (editando) { await updateGrupo(editando.id, payload) } else { await createGrupo(payload) }
       await cargarDatos(); setModalAbierto(false)
     } catch (err) { setErrores({ general: err.message }) }
@@ -92,21 +82,21 @@ export default function Grupos() {
         </Thead>
         <Tbody>
           {grupos.length === 0 ? (
-            <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-purple-400/50">No hay grupos</td></tr>
+            <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-gray-400">No hay grupos</td></tr>
           ) : grupos.map((g) => (
-            <tr key={g.id} className="hover:bg-white/3 transition-colors">
+            <tr key={g.id} className="hover:bg-gray-50/70 transition-colors">
               <Td>
-                <p className="font-medium text-white">{g.nombre}</p>
-                {g.descripcion && <p className="text-xs text-purple-400/60 max-w-xs truncate">{g.descripcion}</p>}
+                <p className="font-medium text-gray-800">{g.nombre}</p>
+                {g.descripcion && <p className="text-xs text-gray-400 max-w-xs truncate">{g.descripcion}</p>}
               </Td>
               <Td><Badge color="blue">{g.nivel}</Badge></Td>
               <Td>{g.horario}</Td>
-              <Td>{g.profesores ? `${g.profesores.nombre} ${g.profesores.apellido}` : <span className="text-purple-500/50">Sin asignar</span>}</Td>
+              <Td>{g.profesores ? `${g.profesores.nombre} ${g.profesores.apellido}` : <span className="text-gray-400">Sin asignar</span>}</Td>
               <Td>{g.capacidad_maxima} alumnos</Td>
               <Td className="text-right">
                 <div className="flex items-center justify-end gap-2">
-                  <button onClick={() => abrirEditar(g)} className="p-1.5 text-purple-400 hover:text-violet-300 hover:bg-violet-500/10 rounded transition-colors"><Pencil size={15} /></button>
-                  <button onClick={() => handleEliminar(g.id)} className="p-1.5 text-purple-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"><Trash2 size={15} /></button>
+                  <button onClick={() => abrirEditar(g)} className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary-light rounded-lg transition-colors"><Pencil size={15} /></button>
+                  <button onClick={() => handleEliminar(g.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={15} /></button>
                 </div>
               </Td>
             </tr>
@@ -115,7 +105,7 @@ export default function Grupos() {
       </Table>
       <Modal isOpen={modalAbierto} onClose={() => setModalAbierto(false)} title={editando ? 'Editar Grupo' : 'Nuevo Grupo'} size="lg">
         <form onSubmit={handleSubmit} className="space-y-4">
-          {errores.general && <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-3 py-2 rounded text-sm">{errores.general}</div>}
+          {errores.general && <div className="bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded-lg text-sm">{errores.general}</div>}
           <Input label="Nombre del grupo *" name="nombre" value={form.nombre} onChange={handleChange} error={errores.nombre} placeholder="Ej: Tango Intermedio" />
           <div className="grid grid-cols-2 gap-4">
             <Select label="Nivel *" name="nivel" value={form.nivel} onChange={handleChange} error={errores.nivel}>
