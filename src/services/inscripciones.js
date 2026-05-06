@@ -3,19 +3,37 @@ import { supabase } from '../lib/supabase'
 export async function getInscripciones() {
   const { data, error } = await supabase
     .from('inscripciones')
-    .select(`*, alumnos (id, nombre, apellido, dni), grupos (id, nombre, nivel, capacidad_maxima)`)
+    .select('id, alumno_id, grupo_id, fecha, estado')
     .order('fecha', { ascending: false })
   if (error) throw error
-  return data
+
+  // Traer alumnos y grupos en queries separadas para no depender de FKs
+  const alumnoIds = [...new Set(data.map((i) => i.alumno_id))]
+  const grupoIds = [...new Set(data.map((i) => i.grupo_id))]
+
+  const [{ data: alumnos }, { data: grupos }] = await Promise.all([
+    alumnoIds.length ? supabase.from('alumnos').select('id, nombre, apellido, dni').in('id', alumnoIds) : { data: [] },
+    grupoIds.length ? supabase.from('grupos').select('id, nombre, nivel, capacidad_maxima').in('id', grupoIds) : { data: [] },
+  ])
+
+  const alumnosMap = Object.fromEntries((alumnos ?? []).map((a) => [a.id, a]))
+  const gruposMap = Object.fromEntries((grupos ?? []).map((g) => [g.id, g]))
+
+  return data.map((i) => ({
+    ...i,
+    alumnos: alumnosMap[i.alumno_id] ?? null,
+    grupos: gruposMap[i.grupo_id] ?? null,
+  }))
 }
 
 async function verificarCupo(grupo_id) {
-  const { data: grupo } = await supabase.from('grupos').select('capacidad_maxima').eq('id', grupo_id).single()
+  const { data: grupo, error } = await supabase.from('grupos').select('capacidad_maxima').eq('id', grupo_id).single()
+  if (error || !grupo) throw new Error('No se encontró el grupo seleccionado.')
   const { count: inscriptosActivos } = await supabase
     .from('inscripciones').select('*', { count: 'exact', head: true })
     .eq('grupo_id', grupo_id).eq('estado', 'activa')
   if (inscriptosActivos >= grupo.capacidad_maxima) {
-    throw new Error(`El grupo no tiene cupo disponible.`)
+    throw new Error('El grupo no tiene cupo disponible.')
   }
 }
 
@@ -27,19 +45,17 @@ export async function createInscripcion({ alumno_id, grupo_id }) {
     .insert([{ alumno_id, grupo_id, fecha, estado: 'activa' }])
     .select()
     .single()
-  if (error) throw error
+  if (error) throw new Error(error.message)
   return data
 }
 
 export async function createInscripcionConAlumno({ alumnoData, grupo_ids }) {
   const fecha = new Date().toISOString().split('T')[0]
 
-  // Verificar cupo en todos los grupos antes de crear nada
   for (const grupo_id of grupo_ids) {
     await verificarCupo(grupo_id)
   }
 
-  // Reutilizar alumno si el DNI ya existe, si no crear uno nuevo
   const { data: alumnoExistente } = await supabase
     .from('alumnos').select('id').eq('dni', alumnoData.dni).maybeSingle()
 
@@ -50,13 +66,12 @@ export async function createInscripcionConAlumno({ alumnoData, grupo_ids }) {
     const { data: nuevoAlumno, error: errAlumno } = await supabase
       .from('alumnos')
       .insert([{ ...alumnoData, fecha_alta: fecha }])
-      .select()
+      .select('id')
       .single()
-    if (errAlumno) throw errAlumno
+    if (errAlumno) throw new Error('Error al crear el alumno: ' + errAlumno.message)
     alumno_id = nuevoAlumno.id
   }
 
-  // Filtrar grupos en los que ya está inscripto
   const { data: inscExistentes } = await supabase
     .from('inscripciones').select('grupo_id').eq('alumno_id', alumno_id).in('grupo_id', grupo_ids)
   const yaInscripto = new Set((inscExistentes ?? []).map((i) => i.grupo_id))
@@ -67,13 +82,13 @@ export async function createInscripcionConAlumno({ alumnoData, grupo_ids }) {
   const { error } = await supabase.from('inscripciones').insert(
     gruposNuevos.map((grupo_id) => ({ alumno_id, grupo_id, fecha, estado: 'activa' }))
   )
-  if (error) throw error
+  if (error) throw new Error('Error al crear la inscripción: ' + error.message)
 
   return { alumno_id, grupos_inscriptos: gruposNuevos.length, grupos_omitidos: yaInscripto.size }
 }
 
 export async function updateInscripcion(id, cambios) {
   const { data, error } = await supabase.from('inscripciones').update(cambios).eq('id', id).select().single()
-  if (error) throw error
+  if (error) throw new Error(error.message)
   return data
 }
