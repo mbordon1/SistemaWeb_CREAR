@@ -35,17 +35,27 @@ export default function Sidebar() {
     <aside className="w-60 shrink-0 flex flex-col relative overflow-hidden"
       style={{ background: 'linear-gradient(160deg, #1E1147 0%, #2D1B69 100%)' }}>
 
-      {/* Dancer silhouette watermark */}
-      <div className="absolute bottom-0 right-0 w-40 h-64 opacity-5 pointer-events-none select-none flex items-end justify-end pr-2 pb-8">
-        <svg viewBox="0 0 100 200" fill="white" className="w-full h-full">
-          <ellipse cx="50" cy="20" rx="10" ry="10" />
-          <line x1="50" y1="30" x2="50" y2="100" stroke="white" strokeWidth="6" strokeLinecap="round"/>
-          <line x1="50" y1="55" x2="20" y2="40" stroke="white" strokeWidth="5" strokeLinecap="round"/>
-          <line x1="50" y1="55" x2="85" y2="35" stroke="white" strokeWidth="5" strokeLinecap="round"/>
-          <line x1="50" y1="100" x2="30" y2="160" stroke="white" strokeWidth="5" strokeLinecap="round"/>
-          <line x1="50" y1="100" x2="75" y2="155" stroke="white" strokeWidth="5" strokeLinecap="round"/>
-          <line x1="30" y1="160" x2="20" y2="195" stroke="white" strokeWidth="4" strokeLinecap="round"/>
-          <line x1="75" y1="155" x2="90" y2="185" stroke="white" strokeWidth="4" strokeLinecap="round"/>
+      {/* Arabesque silhouette watermark */}
+      <div className="absolute bottom-0 right-0 w-44 h-72 opacity-5 pointer-events-none select-none">
+        <svg viewBox="0 0 100 180" fill="none" stroke="white" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
+          {/* Head */}
+          <ellipse cx="38" cy="18" rx="8" ry="9" fill="white" stroke="none" />
+          {/* Neck */}
+          <line x1="38" y1="27" x2="40" y2="34" strokeWidth="4" />
+          {/* Torso (leaning forward) */}
+          <line x1="40" y1="34" x2="48" y2="72" strokeWidth="6" />
+          {/* Front arm extended forward-down */}
+          <line x1="43" y1="48" x2="8" y2="60" strokeWidth="4" />
+          {/* Back arm extended back */}
+          <line x1="43" y1="48" x2="72" y2="44" strokeWidth="4" />
+          {/* Supporting leg straight down */}
+          <line x1="48" y1="72" x2="44" y2="140" strokeWidth="5" />
+          {/* Foot on pointe */}
+          <line x1="44" y1="140" x2="50" y2="148" strokeWidth="3" />
+          {/* Arabesque leg extended back and high */}
+          <line x1="48" y1="72" x2="95" y2="30" strokeWidth="5" />
+          {/* Pointed arabesque foot */}
+          <line x1="95" y1="30" x2="100" y2="22" strokeWidth="3" />
         </svg>
       </div>
 
