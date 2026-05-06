@@ -3,10 +3,16 @@ import { supabase } from '../lib/supabase'
 export async function getGrupos() {
   const { data, error } = await supabase
     .from('grupos')
-    .select(`*, profesores (id, nombre, apellido)`)
+    .select('*')
     .order('nombre', { ascending: true })
   if (error) throw error
-  return data
+
+  // Intentar traer el profesor asociado sin romper si no hay FK definida
+  const { data: profesores } = await supabase.from('profesores').select('id, nombre, apellido')
+  const profById = {}
+  ;(profesores ?? []).forEach((p) => { profById[p.id] = p })
+
+  return data.map((g) => ({ ...g, profesores: profById[g.profesor_id] ?? null }))
 }
 
 export async function createGrupo(grupo) {

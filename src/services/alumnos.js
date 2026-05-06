@@ -1,21 +1,31 @@
 import { supabase } from '../lib/supabase'
 
 export async function getAlumnos() {
-  const { data, error } = await supabase
+  const { data: alumnos, error } = await supabase
     .from('alumnos')
-    .select(`
-      id, nombre, apellido, dni, telefono, email, domicilio, fecha_nacimiento, fecha_alta,
-      inscripciones (id, estado, grupos (id, nombre, nivel))
-    `)
+    .select('id, nombre, apellido, dni, telefono, email, domicilio, fecha_nacimiento, fecha_alta')
     .order('apellido', { ascending: true })
   if (error) throw error
-  return data
+
+  // Consulta separada para no depender de FK en Supabase
+  const { data: inscripciones } = await supabase
+    .from('inscripciones')
+    .select('id, alumno_id, estado, grupo_id, grupos(id, nombre, nivel)')
+    .eq('estado', 'activa')
+
+  const inscByAlumno = {}
+  ;(inscripciones ?? []).forEach((i) => {
+    if (!inscByAlumno[i.alumno_id]) inscByAlumno[i.alumno_id] = []
+    inscByAlumno[i.alumno_id].push(i)
+  })
+
+  return alumnos.map((a) => ({ ...a, inscripciones: inscByAlumno[a.id] ?? [] }))
 }
 
 export async function getAlumnoById(id) {
   const { data, error } = await supabase
     .from('alumnos')
-    .select(`*, inscripciones (id, estado, grupos (id, nombre, nivel)), alumnos_padres (padres (id, nombre, apellido, telefono, email))`)
+    .select('*')
     .eq('id', id)
     .single()
   if (error) throw error

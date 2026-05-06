@@ -37,7 +37,11 @@ export default function Inscripciones() {
   async function cargar() {
     setLoading(true)
     try {
-      const [i, a, g] = await Promise.all([getInscripciones(), getAlumnos(), getGrupos()])
+      const [i, a, g] = await Promise.all([
+        getInscripciones().catch(() => []),
+        getAlumnos().catch(() => []),
+        getGrupos().catch(() => []),
+      ])
       setInscripciones(i); setAlumnos(a); setGrupos(g)
     } finally { setLoading(false) }
   }
