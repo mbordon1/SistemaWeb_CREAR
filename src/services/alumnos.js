@@ -3,7 +3,10 @@ import { supabase } from '../lib/supabase'
 export async function getAlumnos() {
   const { data, error } = await supabase
     .from('alumnos')
-    .select(`*, grupos (id, nombre, nivel)`)
+    .select(`
+      id, nombre, apellido, dni, telefono, email, domicilio, fecha_nacimiento, fecha_alta,
+      inscripciones (id, estado, grupos (id, nombre, nivel))
+    `)
     .order('apellido', { ascending: true })
   if (error) throw error
   return data
@@ -12,7 +15,7 @@ export async function getAlumnos() {
 export async function getAlumnoById(id) {
   const { data, error } = await supabase
     .from('alumnos')
-    .select(`*, grupos (id, nombre, nivel), alumnos_padres (padres (id, nombre, apellido, telefono, email))`)
+    .select(`*, inscripciones (id, estado, grupos (id, nombre, nivel)), alumnos_padres (padres (id, nombre, apellido, telefono, email))`)
     .eq('id', id)
     .single()
   if (error) throw error
