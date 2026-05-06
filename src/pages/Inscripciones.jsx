@@ -128,12 +128,12 @@ export default function Inscripciones() {
         <Thead><tr><Th>Alumno</Th><Th>Grupo</Th><Th>Nivel</Th><Th>Fecha</Th><Th>Estado</Th><Th>Cambiar estado</Th></tr></Thead>
         <Tbody>
           {inscripciones.length === 0 ? (
-            <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-purple-400/50">No hay inscripciones</td></tr>
+            <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-gray-400">No hay inscripciones</td></tr>
           ) : inscripciones.map((i) => (
-            <tr key={i.id} className="hover:bg-white/3 transition-colors">
+            <tr key={i.id} className="hover:bg-gray-50/70 transition-colors">
               <Td>
-                <span className="font-medium text-white">{i.alumnos?.apellido}, {i.alumnos?.nombre}</span>
-                <p className="text-xs text-purple-400/60">DNI: {i.alumnos?.dni}</p>
+                <span className="font-medium text-gray-800">{i.alumnos?.apellido}, {i.alumnos?.nombre}</span>
+                <p className="text-xs text-gray-400">DNI: {i.alumnos?.dni}</p>
               </Td>
               <Td>{i.grupos?.nombre}</Td>
               <Td>{i.grupos?.nivel}</Td>
@@ -141,7 +141,7 @@ export default function Inscripciones() {
               <Td><Badge color={ESTADO_COLOR[i.estado] ?? 'gray'}>{i.estado}</Badge></Td>
               <Td>
                 <select value={i.estado} onChange={(e) => cambiarEstado(i.id, e.target.value)}
-                  className="text-xs bg-[#1a1547] border border-purple-800/40 text-purple-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                  className="text-xs bg-white border border-gray-200 text-gray-700 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                   <option value="activa">Activa</option>
                   <option value="baja">Baja</option>
                   <option value="espera">Lista de espera</option>
@@ -155,19 +155,19 @@ export default function Inscripciones() {
       <Modal isOpen={modalAbierto} onClose={() => setModalAbierto(false)} title="Nueva Inscripción" size="lg">
         <form onSubmit={handleSubmit} className="space-y-4">
           {mensajeError && (
-            <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 px-3 py-2 rounded text-sm">{mensajeError}</div>
+            <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-2 rounded-lg text-sm">{mensajeError}</div>
           )}
 
           {/* Toggle nuevo / existente */}
-          <div className="flex rounded-lg overflow-hidden border border-purple-800/40">
+          <div className="flex rounded-xl overflow-hidden border border-gray-200 bg-gray-50 p-1 gap-1">
             <button type="button"
               onClick={() => { setModoNuevoAlumno(true); setErrores({}) }}
-              className={`flex-1 py-2 text-sm font-medium transition-colors ${modoNuevoAlumno ? 'bg-violet-600 text-white' : 'bg-white/5 text-purple-400 hover:bg-white/10'}`}>
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${modoNuevoAlumno ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>
               Nuevo alumno
             </button>
             <button type="button"
               onClick={() => { setModoNuevoAlumno(false); setErrores({}) }}
-              className={`flex-1 py-2 text-sm font-medium transition-colors ${!modoNuevoAlumno ? 'bg-violet-600 text-white' : 'bg-white/5 text-purple-400 hover:bg-white/10'}`}>
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${!modoNuevoAlumno ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>
               Alumno existente
             </button>
           </div>
@@ -197,24 +197,28 @@ export default function Inscripciones() {
 
           {/* Selección múltiple de grupos */}
           <div>
-            <p className="text-xs font-medium text-purple-300/80 uppercase tracking-wide mb-2">
-              Grupos * <span className="normal-case text-purple-400/50 font-normal">(podés seleccionar varios)</span>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+              Grupos * <span className="normal-case text-gray-400 font-normal">(podés seleccionar varios)</span>
             </p>
-            <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-              {grupos.map((g) => {
-                const seleccionado = gruposSeleccionados.includes(g.id)
-                return (
-                  <label key={g.id}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition-colors ${seleccionado ? 'border-violet-500/60 bg-violet-500/10' : 'border-purple-800/40 bg-white/3 hover:bg-white/5'}`}>
-                    <input type="checkbox" checked={seleccionado} onChange={() => toggleGrupo(g.id)}
-                      className="accent-violet-500 w-4 h-4 shrink-0" />
-                    <span className="text-sm text-white">{g.nombre}</span>
-                    <span className="text-xs text-purple-400/60 ml-auto">{g.nivel} · cap. {g.capacidad_maxima}</span>
-                  </label>
-                )
-              })}
-            </div>
-            {errores.grupos && <p className="text-red-400 text-xs mt-1">{errores.grupos}</p>}
+            {grupos.length === 0 ? (
+              <p className="text-sm text-gray-400 py-3 text-center bg-gray-50 rounded-xl border border-gray-200">No hay grupos disponibles</p>
+            ) : (
+              <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+                {grupos.map((g) => {
+                  const seleccionado = gruposSeleccionados.includes(g.id)
+                  return (
+                    <label key={g.id}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-all duration-150 ${seleccionado ? 'border-primary bg-primary-light' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
+                      <input type="checkbox" checked={seleccionado} onChange={() => toggleGrupo(g.id)}
+                        className="accent-primary w-4 h-4 shrink-0" />
+                      <span className={`text-sm font-medium ${seleccionado ? 'text-primary' : 'text-gray-700'}`}>{g.nombre}</span>
+                      <span className="text-xs text-gray-400 ml-auto">{g.nivel} · cap. {g.capacidad_maxima}</span>
+                    </label>
+                  )
+                })}
+              </div>
+            )}
+            {errores.grupos && <p className="text-red-500 text-xs mt-1">{errores.grupos}</p>}
           </div>
 
           <div className="flex justify-end gap-3 pt-2">

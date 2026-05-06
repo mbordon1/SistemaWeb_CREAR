@@ -1,20 +1,20 @@
 const variants = {
-  primary: 'bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white hover:from-violet-500 hover:to-fuchsia-400 shadow-lg shadow-violet-900/30 disabled:opacity-50',
-  secondary: 'bg-white/5 border border-purple-700/50 text-purple-200 hover:bg-white/10 hover:border-purple-600/60',
-  danger: 'bg-red-600/80 text-white hover:bg-red-500 border border-red-500/50',
-  ghost: 'text-purple-300 hover:bg-white/5',
+  primary: 'bg-primary text-white hover:bg-primary-dark shadow-sm hover:shadow-card-md disabled:opacity-50',
+  secondary: 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50',
+  danger: 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100',
+  ghost: 'text-primary hover:bg-primary-light',
 }
 
 const sizes = {
-  sm: 'px-3 py-1.5 text-sm',
+  sm: 'px-3 py-1.5 text-xs',
   md: 'px-4 py-2 text-sm',
-  lg: 'px-6 py-3 text-base',
+  lg: 'px-6 py-2.5 text-sm',
 }
 
 export default function Button({ children, variant = 'primary', size = 'md', className = '', ...props }) {
   return (
     <button
-      className={`inline-flex items-center gap-2 font-medium rounded-lg transition-all disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`inline-flex items-center gap-2 font-medium rounded-lg transition-all duration-150 disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >
       {children}

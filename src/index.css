@@ -4,20 +4,14 @@
 
 @layer base {
   body {
-    @apply bg-[#0d0825] text-white;
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: #F8F9FC;
+    color: #1E1B4B;
+    -webkit-font-smoothing: antialiased;
   }
 
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    @apply bg-purple-800/50 rounded-full;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-purple-700/70;
-  }
+  *::-webkit-scrollbar { width: 5px; height: 5px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb { background: #C4B5FD; border-radius: 99px; }
+  *::-webkit-scrollbar-thumb:hover { background: #a78bfa; }
 }
