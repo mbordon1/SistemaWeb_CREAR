@@ -35,29 +35,6 @@ export default function Sidebar() {
     <aside className="w-60 shrink-0 flex flex-col relative overflow-hidden"
       style={{ background: 'linear-gradient(160deg, #1E1147 0%, #2D1B69 100%)' }}>
 
-      {/* Arabesque silhouette watermark */}
-      <div className="absolute bottom-0 right-0 w-44 h-72 opacity-5 pointer-events-none select-none">
-        <svg viewBox="0 0 100 180" fill="none" stroke="white" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
-          {/* Head */}
-          <ellipse cx="38" cy="18" rx="8" ry="9" fill="white" stroke="none" />
-          {/* Neck */}
-          <line x1="38" y1="27" x2="40" y2="34" strokeWidth="4" />
-          {/* Torso (leaning forward) */}
-          <line x1="40" y1="34" x2="48" y2="72" strokeWidth="6" />
-          {/* Front arm extended forward-down */}
-          <line x1="43" y1="48" x2="8" y2="60" strokeWidth="4" />
-          {/* Back arm extended back */}
-          <line x1="43" y1="48" x2="72" y2="44" strokeWidth="4" />
-          {/* Supporting leg straight down */}
-          <line x1="48" y1="72" x2="44" y2="140" strokeWidth="5" />
-          {/* Foot on pointe */}
-          <line x1="44" y1="140" x2="50" y2="148" strokeWidth="3" />
-          {/* Arabesque leg extended back and high */}
-          <line x1="48" y1="72" x2="95" y2="30" strokeWidth="5" />
-          {/* Pointed arabesque foot */}
-          <line x1="95" y1="30" x2="100" y2="22" strokeWidth="3" />
-        </svg>
-      </div>
 
       {/* Logo */}
       <div className="px-5 pt-6 pb-5">

@@ -23,20 +23,6 @@ export default function Login() {
       <div className="hidden lg:flex flex-col justify-between w-1/2 p-12 relative overflow-hidden"
         style={{ background: 'linear-gradient(160deg, #1E1147 0%, #2D1B69 100%)' }}>
 
-        {/* Arabesque watermark */}
-        <div className="absolute bottom-0 right-0 w-72 h-96 opacity-5 pointer-events-none">
-          <svg viewBox="0 0 100 180" fill="none" stroke="white" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
-            <ellipse cx="38" cy="18" rx="8" ry="9" fill="white" stroke="none" />
-            <line x1="38" y1="27" x2="40" y2="34" strokeWidth="4" />
-            <line x1="40" y1="34" x2="48" y2="72" strokeWidth="6" />
-            <line x1="43" y1="48" x2="8" y2="60" strokeWidth="4" />
-            <line x1="43" y1="48" x2="72" y2="44" strokeWidth="4" />
-            <line x1="48" y1="72" x2="44" y2="140" strokeWidth="5" />
-            <line x1="44" y1="140" x2="50" y2="148" strokeWidth="3" />
-            <line x1="48" y1="72" x2="95" y2="30" strokeWidth="5" />
-            <line x1="95" y1="30" x2="100" y2="22" strokeWidth="3" />
-          </svg>
-        </div>
 
         <div>
           <div className="flex items-center gap-3">
