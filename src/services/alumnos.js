@@ -7,16 +7,24 @@ export async function getAlumnos() {
     .order('apellido', { ascending: true })
   if (error) throw error
 
-  // Consulta separada para no depender de FK en Supabase
+  // BUG-FIX (BUG-04): era .select('... grupos(id, nombre, nivel)') — FK join
+  // que Supabase resuelve como null si el constraint no está definido explícitamente.
+  // Ahora se usa el patrón consistente con el resto del sistema: queries separadas.
   const { data: inscripciones } = await supabase
     .from('inscripciones')
-    .select('id, alumno_id, estado, grupo_id, grupos(id, nombre, nivel)')
+    .select('id, alumno_id, estado, grupo_id')
     .eq('estado', 'activa')
+
+  const grupoIds = [...new Set((inscripciones ?? []).map((i) => i.grupo_id))]
+  const { data: grupos } = grupoIds.length
+    ? await supabase.from('grupos').select('id, nombre, nivel').in('id', grupoIds)
+    : { data: [] }
+  const gruposMap = Object.fromEntries((grupos ?? []).map((g) => [g.id, g]))
 
   const inscByAlumno = {}
   ;(inscripciones ?? []).forEach((i) => {
     if (!inscByAlumno[i.alumno_id]) inscByAlumno[i.alumno_id] = []
-    inscByAlumno[i.alumno_id].push(i)
+    inscByAlumno[i.alumno_id].push({ ...i, grupos: gruposMap[i.grupo_id] ?? null })
   })
 
   return alumnos.map((a) => ({ ...a, inscripciones: inscByAlumno[a.id] ?? [] }))

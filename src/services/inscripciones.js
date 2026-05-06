@@ -32,12 +32,24 @@ async function verificarCupo(grupo_id) {
   const { count: inscriptosActivos } = await supabase
     .from('inscripciones').select('*', { count: 'exact', head: true })
     .eq('grupo_id', grupo_id).eq('estado', 'activa')
-  if (inscriptosActivos >= grupo.capacidad_maxima) {
+  // BUG-FIX: comparar con null explícitamente para no permitir inscripción si el count falla
+  if (inscriptosActivos == null || inscriptosActivos >= grupo.capacidad_maxima) {
     throw new Error('El grupo no tiene cupo disponible.')
   }
 }
 
+// BUG-FIX (BUG-02): agrega verificación de inscripción activa existente
+// antes de insertar, para evitar duplicados en el modo "alumno existente".
 export async function createInscripcion({ alumno_id, grupo_id }) {
+  const { data: existente } = await supabase
+    .from('inscripciones')
+    .select('id')
+    .eq('alumno_id', alumno_id)
+    .eq('grupo_id', grupo_id)
+    .eq('estado', 'activa')
+    .maybeSingle()
+  if (existente) throw new Error('El alumno ya tiene una inscripción activa en este grupo.')
+
   await verificarCupo(grupo_id)
   const fecha = new Date().toISOString().split('T')[0]
   const { data, error } = await supabase
@@ -72,12 +84,18 @@ export async function createInscripcionConAlumno({ alumnoData, grupo_ids }) {
     alumno_id = nuevoAlumno.id
   }
 
+  // BUG-FIX (BUG-01): filtrar solo inscripciones ACTIVAS para permitir
+  // re-inscripción de alumnos que tuvieron una baja en el mismo grupo.
   const { data: inscExistentes } = await supabase
-    .from('inscripciones').select('grupo_id').eq('alumno_id', alumno_id).in('grupo_id', grupo_ids)
+    .from('inscripciones')
+    .select('grupo_id')
+    .eq('alumno_id', alumno_id)
+    .eq('estado', 'activa')
+    .in('grupo_id', grupo_ids)
   const yaInscripto = new Set((inscExistentes ?? []).map((i) => i.grupo_id))
   const gruposNuevos = grupo_ids.filter((id) => !yaInscripto.has(id))
 
-  if (gruposNuevos.length === 0) throw new Error('El alumno ya está inscripto en todos los grupos seleccionados.')
+  if (gruposNuevos.length === 0) throw new Error('El alumno ya está inscripto activamente en todos los grupos seleccionados.')
 
   const { error } = await supabase.from('inscripciones').insert(
     gruposNuevos.map((grupo_id) => ({ alumno_id, grupo_id, fecha, estado: 'activa' }))

@@ -69,10 +69,15 @@ export async function generarCuotasDelMes(mes) {
       grupo.fecha_precio_base,
       mes
     )
-    montosPorAlumno[insc.alumno_id] = (montosPorAlumno[insc.alumno_id] ?? 0) + monto
+    // BUG-FIX (BUG-06): redondear en cada acumulación para evitar
+    // errores de punto flotante al sumar varios montos con decimales.
+    montosPorAlumno[insc.alumno_id] =
+      Math.round(((montosPorAlumno[insc.alumno_id] ?? 0) + monto) * 100) / 100
   }
 
-  const alumnoIds = Object.keys(montosPorAlumno)
+  // BUG-FIX (BUG-07): excluir alumnos cuyo monto total sea $0 (grupos sin
+  // cuota configurada) para no generar cuotas vacías que distorsionen el módulo.
+  const alumnoIds = Object.keys(montosPorAlumno).filter((id) => montosPorAlumno[id] > 0)
   if (!alumnoIds.length) return { generadas: 0, omitidas: 0 }
 
   // 4. Detectar cuáles ya tienen cuota para este mes (evitar duplicados)
@@ -81,9 +86,12 @@ export async function generarCuotasDelMes(mes) {
     .select('alumno_id')
     .eq('mes', mes)
     .in('alumno_id', alumnoIds)
-  const yaGenerados = new Set((existentes ?? []).map((c) => c.alumno_id))
+  // BUG-FIX (BUG-05): usar String() en ambos lados para comparación segura
+  // cuando alumno_id es entero (Object.keys devuelve strings; Supabase puede
+  // devolver números si la columna es bigint/serial).
+  const yaGenerados = new Set((existentes ?? []).map((c) => String(c.alumno_id)))
 
-  const nuevosIds = alumnoIds.filter((id) => !yaGenerados.has(id))
+  const nuevosIds = alumnoIds.filter((id) => !yaGenerados.has(String(id)))
   if (!nuevosIds.length) return { generadas: 0, omitidas: yaGenerados.size }
 
   // 5. Calcular fecha de vencimiento = último día del mes

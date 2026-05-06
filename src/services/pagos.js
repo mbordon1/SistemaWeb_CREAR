@@ -36,7 +36,10 @@ export async function registrarPago(cuota_id, pago) {
     .select().single()
   if (error) throw error
 
-  await supabase.from('cuotas').update({ estado: 'pagada' }).eq('id', cuota_id)
+  // BUG-FIX (BUG-03): verificar error en el update — si falla en silencio
+  // el pago queda registrado pero la cuota sigue mostrando "pendiente".
+  const { error: errUpdate } = await supabase.from('cuotas').update({ estado: 'pagada' }).eq('id', cuota_id)
+  if (errUpdate) throw new Error('Pago registrado pero no se pudo actualizar el estado de la cuota: ' + errUpdate.message)
 
   // Usar el id del pago como base del número evita la race condition
   // que ocurre cuando dos pagos simultáneos hacen COUNT(*)+1 y obtienen el mismo valor.
