@@ -15,7 +15,7 @@ async function verificarCupo(grupo_id) {
     .from('inscripciones').select('*', { count: 'exact', head: true })
     .eq('grupo_id', grupo_id).eq('estado', 'activa')
   if (inscriptosActivos >= grupo.capacidad_maxima) {
-    throw new Error('El grupo no tiene cupo disponible.')
+    throw new Error(`El grupo no tiene cupo disponible.`)
   }
 }
 
@@ -31,9 +31,15 @@ export async function createInscripcion({ alumno_id, grupo_id }) {
   return data
 }
 
-export async function createInscripcionConAlumno({ alumnoData, grupo_id }) {
-  await verificarCupo(grupo_id)
+export async function createInscripcionConAlumno({ alumnoData, grupo_ids }) {
+  const fecha = new Date().toISOString().split('T')[0]
 
+  // Verificar cupo en todos los grupos antes de crear nada
+  for (const grupo_id of grupo_ids) {
+    await verificarCupo(grupo_id)
+  }
+
+  // Reutilizar alumno si el DNI ya existe, si no crear uno nuevo
   const { data: alumnoExistente } = await supabase
     .from('alumnos').select('id').eq('dni', alumnoData.dni).maybeSingle()
 
@@ -43,25 +49,27 @@ export async function createInscripcionConAlumno({ alumnoData, grupo_id }) {
   } else {
     const { data: nuevoAlumno, error: errAlumno } = await supabase
       .from('alumnos')
-      .insert([{ ...alumnoData, fecha_alta: new Date().toISOString().split('T')[0] }])
+      .insert([{ ...alumnoData, fecha_alta: fecha }])
       .select()
       .single()
     if (errAlumno) throw errAlumno
     alumno_id = nuevoAlumno.id
   }
 
-  const { data: inscExistente } = await supabase
-    .from('inscripciones').select('id').eq('alumno_id', alumno_id).eq('grupo_id', grupo_id).maybeSingle()
-  if (inscExistente) throw new Error('El alumno ya está inscripto en este grupo.')
+  // Filtrar grupos en los que ya está inscripto
+  const { data: inscExistentes } = await supabase
+    .from('inscripciones').select('grupo_id').eq('alumno_id', alumno_id).in('grupo_id', grupo_ids)
+  const yaInscripto = new Set((inscExistentes ?? []).map((i) => i.grupo_id))
+  const gruposNuevos = grupo_ids.filter((id) => !yaInscripto.has(id))
 
-  const fecha = new Date().toISOString().split('T')[0]
-  const { data, error } = await supabase
-    .from('inscripciones')
-    .insert([{ alumno_id, grupo_id, fecha, estado: 'activa' }])
-    .select()
-    .single()
+  if (gruposNuevos.length === 0) throw new Error('El alumno ya está inscripto en todos los grupos seleccionados.')
+
+  const { error } = await supabase.from('inscripciones').insert(
+    gruposNuevos.map((grupo_id) => ({ alumno_id, grupo_id, fecha, estado: 'activa' }))
+  )
   if (error) throw error
-  return data
+
+  return { alumno_id, grupos_inscriptos: gruposNuevos.length, grupos_omitidos: yaInscripto.size }
 }
 
 export async function updateInscripcion(id, cambios) {

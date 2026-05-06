@@ -15,7 +15,7 @@ const ESTADO_COLOR = { activa: 'green', baja: 'red', espera: 'yellow' }
 
 const FORM_NUEVO = {
   nombre: '', apellido: '', dni: '', telefono: '', email: '',
-  fecha_nacimiento: '', domicilio: '', grupo_id: '',
+  fecha_nacimiento: '', domicilio: '',
 }
 
 export default function Inscripciones() {
@@ -27,6 +27,7 @@ export default function Inscripciones() {
   const [modoNuevoAlumno, setModoNuevoAlumno] = useState(true)
   const [form, setForm] = useState(FORM_NUEVO)
   const [alumnoId, setAlumnoId] = useState('')
+  const [gruposSeleccionados, setGruposSeleccionados] = useState([])
   const [errores, setErrores] = useState({})
   const [guardando, setGuardando] = useState(false)
   const [mensajeError, setMensajeError] = useState('')
@@ -46,6 +47,7 @@ export default function Inscripciones() {
     setModoNuevoAlumno(true)
     setForm(FORM_NUEVO)
     setAlumnoId('')
+    setGruposSeleccionados([])
     setErrores({})
     setMensajeError('')
   }
@@ -54,6 +56,13 @@ export default function Inscripciones() {
     const { name, value } = e.target
     setForm((p) => ({ ...p, [name]: value }))
     if (errores[name]) setErrores((p) => ({ ...p, [name]: '' }))
+  }
+
+  function toggleGrupo(id) {
+    setGruposSeleccionados((prev) =>
+      prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]
+    )
+    if (errores.grupos) setErrores((p) => ({ ...p, grupos: '' }))
   }
 
   function validar() {
@@ -70,7 +79,7 @@ export default function Inscripciones() {
     } else {
       if (!alumnoId) e.alumno_id = 'Seleccioná un alumno'
     }
-    if (!form.grupo_id) e.grupo_id = 'Seleccioná un grupo'
+    if (gruposSeleccionados.length === 0) e.grupos = 'Seleccioná al menos un grupo'
     return e
   }
 
@@ -84,13 +93,15 @@ export default function Inscripciones() {
         await createInscripcionConAlumno({
           alumnoData: {
             nombre: form.nombre.trim(), apellido: form.apellido.trim(), dni: form.dni.trim(),
-            telefono: form.telefono.trim(), email: form.email.trim(), domicilio: form.domicilio.trim(),
-            fecha_nacimiento: form.fecha_nacimiento,
+            telefono: form.telefono.trim(), email: form.email.trim(),
+            domicilio: form.domicilio.trim(), fecha_nacimiento: form.fecha_nacimiento,
           },
-          grupo_id: form.grupo_id,
+          grupo_ids: gruposSeleccionados,
         })
       } else {
-        await createInscripcion({ alumno_id: alumnoId, grupo_id: form.grupo_id })
+        for (const grupo_id of gruposSeleccionados) {
+          await createInscripcion({ alumno_id: alumnoId, grupo_id })
+        }
       }
       await cargar(); setModalAbierto(false)
     } catch (err) { setMensajeError(err.message) }
@@ -180,14 +191,33 @@ export default function Inscripciones() {
             </Select>
           )}
 
-          <Select label="Grupo *" name="grupo_id" value={form.grupo_id} onChange={handleChange} error={errores.grupo_id}>
-            <option value="">Seleccionar grupo...</option>
-            {grupos.map((g) => <option key={g.id} value={g.id}>{g.nombre} — {g.nivel} (cap. {g.capacidad_maxima})</option>)}
-          </Select>
+          {/* Selección múltiple de grupos */}
+          <div>
+            <p className="text-xs font-medium text-purple-300/80 uppercase tracking-wide mb-2">
+              Grupos * <span className="normal-case text-purple-400/50 font-normal">(podés seleccionar varios)</span>
+            </p>
+            <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+              {grupos.map((g) => {
+                const seleccionado = gruposSeleccionados.includes(g.id)
+                return (
+                  <label key={g.id}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition-colors ${seleccionado ? 'border-violet-500/60 bg-violet-500/10' : 'border-purple-800/40 bg-white/3 hover:bg-white/5'}`}>
+                    <input type="checkbox" checked={seleccionado} onChange={() => toggleGrupo(g.id)}
+                      className="accent-violet-500 w-4 h-4 shrink-0" />
+                    <span className="text-sm text-white">{g.nombre}</span>
+                    <span className="text-xs text-purple-400/60 ml-auto">{g.nivel} · cap. {g.capacidad_maxima}</span>
+                  </label>
+                )
+              })}
+            </div>
+            {errores.grupos && <p className="text-red-400 text-xs mt-1">{errores.grupos}</p>}
+          </div>
 
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="secondary" onClick={() => setModalAbierto(false)}>Cancelar</Button>
-            <Button type="submit" disabled={guardando}>{guardando ? 'Inscribiendo...' : 'Inscribir'}</Button>
+            <Button type="submit" disabled={guardando}>
+              {guardando ? 'Inscribiendo...' : gruposSeleccionados.length > 1 ? `Inscribir en ${gruposSeleccionados.length} grupos` : 'Inscribir'}
+            </Button>
           </div>
         </form>
       </Modal>
