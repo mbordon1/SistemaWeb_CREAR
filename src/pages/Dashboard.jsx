@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Users, UsersRound, AlertCircle, ClipboardList, TrendingUp } from 'lucide-react'
-import { supabase } from '../lib/supabase'
+import { getDashboardStats } from '../services/dashboard'
 import Spinner from '../components/ui/Spinner'
 import Badge from '../components/ui/Badge'
 
@@ -32,7 +32,7 @@ function Avatar({ nombre, apellido }) {
 }
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({ alumnos: 0, grupos: 0, cuotasPendientes: 0, inscripciones: 0 })
+  const [stats, setStats] = useState({ alumnos: 0, grupos: 0, cuotasPendientes: 0, alumnosConClases: 0 })
   const [inscripcionesRecientes, setInscripcionesRecientes] = useState([])
   const [cuotasPendientes, setCuotasPendientes] = useState([])
   const [loading, setLoading] = useState(true)
@@ -40,31 +40,15 @@ export default function Dashboard() {
   useEffect(() => {
     async function cargar() {
       try {
-        const [
-          { count: totalAlumnos },
-          { count: totalGrupos },
-          { count: totalCuotas },
-          { count: totalInscripciones },
-          { data: inscRecientes },
-          { data: cuotas },
-        ] = await Promise.all([
-          supabase.from('alumnos').select('*', { count: 'exact', head: true }),
-          supabase.from('grupos').select('*', { count: 'exact', head: true }),
-          supabase.from('cuotas').select('*', { count: 'exact', head: true }).in('estado', ['pendiente', 'vencida']),
-          supabase.from('inscripciones').select('*', { count: 'exact', head: true }).eq('estado', 'activa'),
-          supabase.from('inscripciones')
-            .select('id, fecha, estado, alumnos(nombre, apellido), grupos(nombre, nivel)')
-            .eq('estado', 'activa').order('fecha', { ascending: false }).limit(6),
-          supabase.from('cuotas')
-            .select('id, mes, monto, estado, alumnos(nombre, apellido)')
-            .in('estado', ['pendiente', 'vencida']).limit(5),
-        ])
+        const data = await getDashboardStats()
         setStats({
-          alumnos: totalAlumnos ?? 0, grupos: totalGrupos ?? 0,
-          cuotasPendientes: totalCuotas ?? 0, inscripciones: totalInscripciones ?? 0,
+          alumnos: data.totalAlumnos,
+          grupos: data.totalGrupos,
+          cuotasPendientes: data.cuotasPendientes,
+          alumnosConClases: data.alumnosConClases,
         })
-        setInscripcionesRecientes(inscRecientes ?? [])
-        setCuotasPendientes(cuotas ?? [])
+        setInscripcionesRecientes(data.inscRecientes)
+        setCuotasPendientes(data.cuotasPendientesList)
       } catch (err) {
         console.error('Error cargando dashboard:', err)
       } finally {
@@ -88,8 +72,8 @@ export default function Dashboard() {
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          icon={Users} label="Alumnos activos" value={stats.alumnos}
-          subtitle="Total registrados"
+          icon={Users} label="Total alumnos" value={stats.alumnos}
+          subtitle="Registrados en el sistema"
           bg="bg-primary-light" color="text-primary"
         />
         <StatCard
@@ -103,8 +87,8 @@ export default function Dashboard() {
           bg="bg-amber-50" color="text-amber-500"
         />
         <StatCard
-          icon={ClipboardList} label="Inscripciones" value={stats.inscripciones}
-          subtitle="Matrículas activas"
+          icon={ClipboardList} label="Con clases activas" value={stats.alumnosConClases}
+          subtitle="Alumnos únicos con grupos asignados"
           bg="bg-emerald-50" color="text-emerald-600"
         />
       </div>

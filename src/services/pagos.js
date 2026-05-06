@@ -38,10 +38,10 @@ export async function registrarPago(cuota_id, pago) {
 
   await supabase.from('cuotas').update({ estado: 'pagada' }).eq('id', cuota_id)
 
-  const { count } = await supabase
-    .from('comprobantes')
-    .select('*', { count: 'exact', head: true })
-  const numero = `REC-${String((count ?? 0) + 1).padStart(4, '0')}`
+  // Usar el id del pago como base del número evita la race condition
+  // que ocurre cuando dos pagos simultáneos hacen COUNT(*)+1 y obtienen el mismo valor.
+  const idSuffix = String(pagoData.id).replace(/-/g, '').slice(-6).toUpperCase()
+  const numero = `REC-${idSuffix}`
   const { data: comprobante } = await supabase
     .from('comprobantes')
     .insert([{ pago_id: pagoData.id, numero }])
