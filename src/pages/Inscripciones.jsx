@@ -4,6 +4,7 @@ import { getInscripciones, createInscripcion, createInscripcionConAlumno, update
 import { cancelarCuotasPendientes } from '../services/cuotas'
 import { getAlumnos } from '../services/alumnos'
 import { getGrupos } from '../services/grupos'
+import { useToast } from '../context/ToastContext'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Select from '../components/ui/Select'
@@ -20,6 +21,7 @@ const FORM_NUEVO = {
 }
 
 export default function Inscripciones() {
+  const toast = useToast()
   const [inscripciones, setInscripciones] = useState([])
   const [alumnos, setAlumnos] = useState([])
   const [grupos, setGrupos] = useState([])
@@ -106,7 +108,9 @@ export default function Inscripciones() {
           await createInscripcion({ alumno_id: alumnoId, grupo_id })
         }
       }
-      await cargar(); setModalAbierto(false)
+      await cargar()
+      setModalAbierto(false)
+      toast('Inscripción registrada correctamente.')
     } catch (err) { setMensajeError(err.message) }
     finally { setGuardando(false) }
   }
@@ -129,7 +133,8 @@ export default function Inscripciones() {
       }
 
       await cargar()
-    } catch (err) { alert(err.message) }
+      toast('Estado de inscripción actualizado.')
+    } catch (err) { toast(err.message, 'error') }
   }
 
   // Filtros combinados: texto + estado

@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+.animate-toast { animation: toast-in 0.18s ease-out both; }
+
 @layer base {
   body {
     font-family: 'Inter', system-ui, sans-serif;

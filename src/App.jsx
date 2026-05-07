@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { supabase } from './lib/supabase'
+import { ToastProvider } from './context/ToastContext'
 import Layout from './components/layout/Layout'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -31,6 +32,7 @@ export default function App() {
       : <Navigate to="/login" replace />
 
   return (
+    <ToastProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={session ? <Navigate to="/dashboard" replace /> : <Login />} />
@@ -49,5 +51,6 @@ export default function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </ToastProvider>
   )
 }

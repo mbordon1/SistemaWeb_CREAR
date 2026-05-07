@@ -3,10 +3,12 @@ import { Plus, Pencil, Trash2, TrendingUp } from 'lucide-react'
 import { getGrupos, createGrupo, updateGrupo, deleteGrupo } from '../services/grupos'
 import { getProfesores } from '../services/profesores'
 import { calcularMontoActual } from '../services/cuotas'
+import { useToast } from '../context/ToastContext'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Select from '../components/ui/Select'
 import Modal from '../components/ui/Modal'
+import ConfirmModal from '../components/ui/ConfirmModal'
 import { Table, Thead, Th, Tbody, Td } from '../components/ui/Table'
 import Badge from '../components/ui/Badge'
 import Spinner from '../components/ui/Spinner'
@@ -23,6 +25,7 @@ const FORM_INICIAL = {
 const inputBase = 'w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all'
 
 export default function Grupos() {
+  const toast = useToast()
   const [grupos, setGrupos] = useState([])
   const [profesores, setProfesores] = useState([])
   const [loading, setLoading] = useState(true)
@@ -31,6 +34,7 @@ export default function Grupos() {
   const [form, setForm] = useState(FORM_INICIAL)
   const [errores, setErrores] = useState({})
   const [guardando, setGuardando] = useState(false)
+  const [confirmEliminar, setConfirmEliminar] = useState(null)
 
   useEffect(() => { cargarDatos() }, [])
 
@@ -82,14 +86,21 @@ export default function Grupos() {
         fecha_precio_base: form.fecha_precio_base || null,
       }
       if (editando) { await updateGrupo(editando.id, payload) } else { await createGrupo(payload) }
-      await cargarDatos(); setModalAbierto(false)
+      await cargarDatos()
+      setModalAbierto(false)
+      toast(editando ? 'Grupo actualizado.' : 'Grupo creado correctamente.')
     } catch (err) { setErrores({ general: err.message }) }
     finally { setGuardando(false) }
   }
 
-  async function handleEliminar(id) {
-    if (!confirm('¿Eliminar este grupo?')) return
-    try { await deleteGrupo(id); await cargarDatos() } catch (err) { alert(err.message) }
+  async function ejecutarEliminar(grupo) {
+    try {
+      await deleteGrupo(grupo.id)
+      await cargarDatos()
+      toast(`Grupo "${grupo.nombre}" eliminado.`)
+    } catch (err) {
+      toast(err.message, 'error')
+    }
   }
 
   if (loading) return <Spinner className="mt-20" />
@@ -141,7 +152,7 @@ export default function Grupos() {
                 <Td className="text-right">
                   <div className="flex items-center justify-end gap-2">
                     <button onClick={() => abrirEditar(g)} className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary-light rounded-lg transition-colors"><Pencil size={15} /></button>
-                    <button onClick={() => handleEliminar(g.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={15} /></button>
+                    <button onClick={() => setConfirmEliminar(g)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={15} /></button>
                   </div>
                 </Td>
               </tr>
@@ -149,6 +160,15 @@ export default function Grupos() {
           })}
         </Tbody>
       </Table>
+
+      <ConfirmModal
+        isOpen={!!confirmEliminar}
+        onClose={() => setConfirmEliminar(null)}
+        onConfirm={() => ejecutarEliminar(confirmEliminar)}
+        title="Eliminar grupo"
+        message={confirmEliminar ? `¿Eliminar el grupo "${confirmEliminar.nombre}"? Se perderá su configuración de cuota.` : ''}
+        confirmLabel="Eliminar"
+      />
 
       <Modal isOpen={modalAbierto} onClose={() => setModalAbierto(false)} title={editando ? 'Editar Grupo' : 'Nuevo Grupo'} size="lg">
         <form onSubmit={handleSubmit} className="space-y-4">

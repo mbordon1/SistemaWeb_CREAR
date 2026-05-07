@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { Pencil, Trash2, Search, History } from 'lucide-react'
 import { getAlumnos, updateAlumno, deleteAlumno } from '../services/alumnos'
 import { getHistorialPagosByAlumno } from '../services/cuotas'
+import { useToast } from '../context/ToastContext'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Modal from '../components/ui/Modal'
+import ConfirmModal from '../components/ui/ConfirmModal'
 import { Table, Thead, Th, Tbody, Td } from '../components/ui/Table'
 import Badge from '../components/ui/Badge'
 import Spinner from '../components/ui/Spinner'
@@ -17,6 +19,7 @@ const FORM_INICIAL = {
 const ESTADO_COLOR = { activa: 'green', baja: 'red', espera: 'yellow' }
 
 export default function Alumnos() {
+  const toast = useToast()
   const [alumnos, setAlumnos] = useState([])
   const [loading, setLoading] = useState(true)
   const [busqueda, setBusqueda] = useState('')
@@ -30,6 +33,7 @@ export default function Alumnos() {
   const [alumnoHistorial, setAlumnoHistorial] = useState(null)
   const [historial, setHistorial] = useState([])
   const [loadingHistorial, setLoadingHistorial] = useState(false)
+  const [confirmEliminar, setConfirmEliminar] = useState(null) // alumno a eliminar
 
   useEffect(() => { cargarDatos() }, [])
 
@@ -80,7 +84,9 @@ export default function Alumnos() {
         telefono: form.telefono.trim(), email: form.email.trim(),
         domicilio: form.domicilio.trim(), fecha_nacimiento: form.fecha_nacimiento,
       })
-      await cargarDatos(); setModalAbierto(false)
+      await cargarDatos()
+      setModalAbierto(false)
+      toast('Alumno actualizado correctamente.')
     } catch (err) {
       setErrores({ general: err.message ?? 'Error al guardar.' })
     } finally { setGuardando(false) }
@@ -99,10 +105,14 @@ export default function Alumnos() {
     }
   }
 
-  async function handleEliminar(id) {
-    if (!confirm('¿Estás seguro de eliminar este alumno?')) return
-    try { await deleteAlumno(id); await cargarDatos() }
-    catch (err) { alert('No se pudo eliminar: ' + err.message) }
+  async function ejecutarEliminar(alumno) {
+    try {
+      await deleteAlumno(alumno.id)
+      await cargarDatos()
+      toast(`Alumno ${alumno.apellido}, ${alumno.nombre} eliminado.`)
+    } catch (err) {
+      toast(err.message, 'error')
+    }
   }
 
   const alumnosFiltrados = alumnos.filter((a) => {
@@ -158,7 +168,7 @@ export default function Alumnos() {
                     <div className="flex items-center justify-end gap-2">
                       <button onClick={() => abrirHistorial(alumno)} title="Ver historial de pagos" className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"><History size={15} /></button>
                       <button onClick={() => abrirEditar(alumno)} className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary-light rounded-lg transition-colors"><Pencil size={15} /></button>
-                      <button onClick={() => handleEliminar(alumno.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={15} /></button>
+                      <button onClick={() => setConfirmEliminar(alumno)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={15} /></button>
                     </div>
                   </Td>
                 </tr>
@@ -167,6 +177,15 @@ export default function Alumnos() {
           </Tbody>
         </Table>
       </div>
+
+      <ConfirmModal
+        isOpen={!!confirmEliminar}
+        onClose={() => setConfirmEliminar(null)}
+        onConfirm={() => ejecutarEliminar(confirmEliminar)}
+        title="Eliminar alumno"
+        message={confirmEliminar ? `¿Eliminar a ${confirmEliminar.apellido}, ${confirmEliminar.nombre}? Esta acción no se puede deshacer.` : ''}
+        confirmLabel="Eliminar"
+      />
 
       {/* Modal: Historial de pagos */}
       <Modal isOpen={modalHistorial} onClose={() => setModalHistorial(false)}

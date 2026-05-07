@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { CreditCard, RefreshCw, CheckCircle2, ChevronLeft, ChevronRight, Search, Receipt } from 'lucide-react'
 import { getCuotasDelMes, generarCuotasDelMes, marcarCuotasVencidas } from '../services/cuotas'
 import { registrarPago, getReciboByCuota } from '../services/pagos'
+import { useToast } from '../context/ToastContext'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Select from '../components/ui/Select'
@@ -26,6 +27,7 @@ function mesOffset(mes, delta) {
 }
 
 export default function Pagos() {
+  const toast = useToast()
   const [mes, setMes] = useState(() => new Date().toISOString().slice(0, 7))
   const [cuotas, setCuotas] = useState([])
   const [filtro, setFiltro] = useState('todas')
@@ -62,14 +64,13 @@ export default function Pagos() {
   }
 
   async function handleGenerar() {
-    if (!confirm(`¿Generar cuotas para ${mesLabel(mes)}?\n\nSe crearán solo las cuotas que aún no existen.`)) return
     setGenerando(true)
     try {
       const res = await generarCuotasDelMes(mes)
       setResultado(res)
       await cargar()
     } catch (err) {
-      alert('Error al generar cuotas: ' + err.message)
+      toast('Error al generar cuotas: ' + err.message, 'error')
     } finally {
       setGenerando(false)
     }
@@ -115,7 +116,7 @@ export default function Pagos() {
         setCuotaSeleccionada(null)
       }
     } catch (err) {
-      alert(err.message)
+      toast(err.message, 'error')
     } finally {
       setGuardando(false)
     }
