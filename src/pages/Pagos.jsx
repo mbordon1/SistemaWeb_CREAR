@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CreditCard, FileText, RefreshCw, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { CreditCard, FileText, RefreshCw, CheckCircle2, ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { getCuotasDelMes, generarCuotasDelMes, marcarCuotasVencidas } from '../services/cuotas'
 import { registrarPago } from '../services/pagos'
 import Button from '../components/ui/Button'
@@ -28,6 +28,7 @@ export default function Pagos() {
   const [mes, setMes] = useState(() => new Date().toISOString().slice(0, 7))
   const [cuotas, setCuotas] = useState([])
   const [filtro, setFiltro] = useState('todas')
+  const [busqueda, setBusqueda] = useState('')
   const [loading, setLoading] = useState(true)
   const [generando, setGenerando] = useState(false)
   const [resultado, setResultado] = useState(null)
@@ -125,7 +126,15 @@ export default function Pagos() {
     { key: 'pagada', label: 'Pagadas' },
   ]
 
-  const cuotasFiltradas = filtro === 'todas' ? cuotas : cuotas.filter((c) => c.estado === filtro)
+  const cuotasFiltradas = cuotas.filter((c) => {
+    if (filtro !== 'todas' && c.estado !== filtro) return false
+    if (!busqueda.trim()) return true
+    const txt = busqueda.toLowerCase()
+    return (
+      c.alumnos?.nombre?.toLowerCase().includes(txt) ||
+      c.alumnos?.apellido?.toLowerCase().includes(txt)
+    )
+  })
 
   return (
     <div className="space-y-5">
@@ -188,6 +197,18 @@ export default function Pagos() {
           ))}
         </div>
       )}
+
+      {/* Buscador */}
+      <div className="relative w-full sm:w-72">
+        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Buscar alumno..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          className="w-full pl-9 pr-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+        />
+      </div>
 
       {/* Panel principal */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-card overflow-hidden">

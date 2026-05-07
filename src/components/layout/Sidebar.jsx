@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Users, UsersRound, GraduationCap,
   ClipboardList, CalendarCheck, CreditCard, Star, UserCog, Banknote,
 } from 'lucide-react'
+import { supabase } from '../../lib/supabase'
 
 const sections = [
   {
@@ -30,6 +31,20 @@ const sections = [
 
 export default function Sidebar() {
   const [logoError, setLogoError] = useState(false)
+  const [cuotasVencidas, setCuotasVencidas] = useState(0)
+
+  useEffect(() => {
+    async function fetchVencidas() {
+      const hoy = new Date().toISOString().split('T')[0]
+      const { count } = await supabase
+        .from('cuotas')
+        .select('*', { count: 'exact', head: true })
+        .in('estado', ['pendiente', 'vencida'])
+        .lt('fecha_vencimiento', hoy)
+      setCuotasVencidas(count ?? 0)
+    }
+    fetchVencidas()
+  }, [])
 
   return (
     <aside className="w-60 shrink-0 flex flex-col relative overflow-hidden"
@@ -77,7 +92,13 @@ export default function Sidebar() {
                     <>
                       <Icon size={16} className={isActive ? 'text-white' : 'text-white/50'} />
                       <span>{itemLabel}</span>
-                      {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white/70" />}
+                      {to === '/pagos' && cuotasVencidas > 0 && (
+                        <span className="ml-auto min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-1">
+                          {cuotasVencidas > 99 ? '99+' : cuotasVencidas}
+                        </span>
+                      )}
+                      {isActive && to !== '/pagos' && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white/70" />}
+                      {isActive && to === '/pagos' && cuotasVencidas === 0 && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white/70" />}
                     </>
                   )}
                 </NavLink>

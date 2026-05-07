@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Search } from 'lucide-react'
 import { getInscripciones, createInscripcion, createInscripcionConAlumno, updateInscripcion } from '../services/inscripciones'
+import { cancelarCuotasPendientes } from '../services/cuotas'
 import { getAlumnos } from '../services/alumnos'
 import { getGrupos } from '../services/grupos'
 import Button from '../components/ui/Button'
@@ -23,6 +24,8 @@ export default function Inscripciones() {
   const [alumnos, setAlumnos] = useState([])
   const [grupos, setGrupos] = useState([])
   const [loading, setLoading] = useState(true)
+  const [busqueda, setBusqueda] = useState('')
+  const [filtroEstado, setFiltroEstado] = useState('todas')
   const [modalAbierto, setModalAbierto] = useState(false)
   const [modoNuevoAlumno, setModoNuevoAlumno] = useState(true)
   const [form, setForm] = useState(FORM_NUEVO)
@@ -47,13 +50,9 @@ export default function Inscripciones() {
   }
 
   function abrirModal() {
-    setModalAbierto(true)
-    setModoNuevoAlumno(true)
-    setForm(FORM_NUEVO)
-    setAlumnoId('')
-    setGruposSeleccionados([])
-    setErrores({})
-    setMensajeError('')
+    setModalAbierto(true); setModoNuevoAlumno(true)
+    setForm(FORM_NUEVO); setAlumnoId('')
+    setGruposSeleccionados([]); setErrores({}); setMensajeError('')
   }
 
   function handleChange(e) {
@@ -112,53 +111,139 @@ export default function Inscripciones() {
     finally { setGuardando(false) }
   }
 
-  async function cambiarEstado(id, estado) {
-    try { await updateInscripcion(id, { estado }); await cargar() } catch (err) { alert(err.message) }
+  async function cambiarEstado(inscripcionId, nuevoEstado) {
+    try {
+      const insc = inscripciones.find((i) => i.id === inscripcionId)
+      await updateInscripcion(inscripcionId, { estado: nuevoEstado })
+
+      // Si pasa a baja y es la última inscripción activa del alumno → cancelar cuotas pendientes
+      if (nuevoEstado === 'baja' && insc) {
+        const otrasActivas = inscripciones.filter(
+          (i) => i.id !== inscripcionId &&
+                 String(i.alumno_id) === String(insc.alumno_id) &&
+                 i.estado === 'activa'
+        )
+        if (otrasActivas.length === 0) {
+          await cancelarCuotasPendientes(insc.alumno_id)
+        }
+      }
+
+      await cargar()
+    } catch (err) { alert(err.message) }
   }
+
+  // Filtros combinados: texto + estado
+  const inscripcionesFiltradas = inscripciones.filter((i) => {
+    const texto = busqueda.toLowerCase()
+    const coincideTexto = !texto ||
+      i.alumnos?.nombre?.toLowerCase().includes(texto) ||
+      i.alumnos?.apellido?.toLowerCase().includes(texto) ||
+      i.alumnos?.dni?.toLowerCase().includes(texto) ||
+      i.grupos?.nombre?.toLowerCase().includes(texto)
+    const coincideEstado = filtroEstado === 'todas' || i.estado === filtroEstado
+    return coincideTexto && coincideEstado
+  })
+
+  const totales = inscripciones.reduce(
+    (acc, i) => { acc[i.estado] = (acc[i.estado] ?? 0) + 1; acc.todas++; return acc },
+    { todas: 0, activa: 0, baja: 0, espera: 0 }
+  )
 
   if (loading) return <Spinner className="mt-20" />
 
   return (
     <div className="space-y-5">
-      <div className="flex justify-end">
+
+      {/* Barra superior */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="relative w-full sm:w-72">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Buscar alumno o grupo..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+          />
+        </div>
         <Button onClick={abrirModal}><Plus size={16} />Nueva Inscripción</Button>
       </div>
 
-      <Table>
-        <Thead><tr><Th>Alumno</Th><Th>Grupo</Th><Th>Nivel</Th><Th>Fecha</Th><Th>Estado</Th><Th>Cambiar estado</Th></tr></Thead>
-        <Tbody>
-          {inscripciones.length === 0 ? (
-            <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-gray-400">No hay inscripciones</td></tr>
-          ) : inscripciones.map((i) => (
-            <tr key={i.id} className="hover:bg-gray-50/70 transition-colors">
-              <Td>
-                <span className="font-medium text-gray-800">{i.alumnos?.apellido}, {i.alumnos?.nombre}</span>
-                <p className="text-xs text-gray-400">DNI: {i.alumnos?.dni}</p>
-              </Td>
-              <Td>{i.grupos?.nombre}</Td>
-              <Td>{i.grupos?.nivel}</Td>
-              <Td>{i.fecha ? new Date(i.fecha).toLocaleDateString('es-AR') : '—'}</Td>
-              <Td><Badge color={ESTADO_COLOR[i.estado] ?? 'gray'}>{i.estado}</Badge></Td>
-              <Td>
-                <select value={i.estado} onChange={(e) => cambiarEstado(i.id, e.target.value)}
-                  className="text-xs bg-white border border-gray-200 text-gray-700 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                  <option value="activa">Activa</option>
-                  <option value="baja">Baja</option>
-                  <option value="espera">Lista de espera</option>
-                </select>
-              </Td>
-            </tr>
-          ))}
-        </Tbody>
-      </Table>
+      {/* Panel con tabs y tabla */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-card overflow-hidden">
 
+        {/* Tabs de estado */}
+        <div className="flex border-b border-gray-100 overflow-x-auto">
+          {[
+            { key: 'todas', label: 'Todas', count: totales.todas },
+            { key: 'activa', label: 'Activas', count: totales.activa },
+            { key: 'espera', label: 'En espera', count: totales.espera },
+            { key: 'baja', label: 'Bajas', count: totales.baja },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setFiltroEstado(tab.key)}
+              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
+                filtroEstado === tab.key
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {tab.label}
+              {tab.count > 0 && (
+                <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${
+                  filtroEstado === tab.key ? 'bg-primary-light text-primary' : 'bg-gray-100 text-gray-500'
+                }`}>{tab.count}</span>
+              )}
+            </button>
+          ))}
+          <span className="ml-auto px-4 py-3 text-xs text-gray-400 self-center whitespace-nowrap">
+            {inscripcionesFiltradas.length} resultado{inscripcionesFiltradas.length !== 1 ? 's' : ''}
+          </span>
+        </div>
+
+        <Table>
+          <Thead>
+            <tr><Th>Alumno</Th><Th>Grupo</Th><Th>Nivel</Th><Th>Fecha</Th><Th>Estado</Th><Th>Cambiar estado</Th></tr>
+          </Thead>
+          <Tbody>
+            {inscripcionesFiltradas.length === 0 ? (
+              <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-gray-400">
+                {busqueda ? 'Sin resultados para la búsqueda' : 'No hay inscripciones'}
+              </td></tr>
+            ) : inscripcionesFiltradas.map((i) => (
+              <tr key={i.id} className="hover:bg-gray-50/70 transition-colors">
+                <Td>
+                  <span className="font-medium text-gray-800">{i.alumnos?.apellido}, {i.alumnos?.nombre}</span>
+                  <p className="text-xs text-gray-400">DNI: {i.alumnos?.dni}</p>
+                </Td>
+                <Td>{i.grupos?.nombre}</Td>
+                <Td>{i.grupos?.nivel}</Td>
+                <Td>{i.fecha ? new Date(i.fecha).toLocaleDateString('es-AR') : '—'}</Td>
+                <Td><Badge color={ESTADO_COLOR[i.estado] ?? 'gray'}>{i.estado}</Badge></Td>
+                <Td>
+                  <select
+                    value={i.estado}
+                    onChange={(e) => cambiarEstado(i.id, e.target.value)}
+                    className="text-xs bg-white border border-gray-200 text-gray-700 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  >
+                    <option value="activa">Activa</option>
+                    <option value="baja">Baja</option>
+                    <option value="espera">Lista de espera</option>
+                  </select>
+                </Td>
+              </tr>
+            ))}
+          </Tbody>
+        </Table>
+      </div>
+
+      {/* Modal nueva inscripción */}
       <Modal isOpen={modalAbierto} onClose={() => setModalAbierto(false)} title="Nueva Inscripción" size="lg">
         <form onSubmit={handleSubmit} className="space-y-4">
           {mensajeError && (
             <div className="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-2 rounded-lg text-sm">{mensajeError}</div>
           )}
-
-          {/* Toggle nuevo / existente */}
           <div className="flex rounded-xl overflow-hidden border border-gray-200 bg-gray-50 p-1 gap-1">
             <button type="button"
               onClick={() => { setModoNuevoAlumno(true); setErrores({}) }}
@@ -195,7 +280,6 @@ export default function Inscripciones() {
             </Select>
           )}
 
-          {/* Selección múltiple de grupos */}
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
               Grupos * <span className="normal-case text-gray-400 font-normal">(podés seleccionar varios)</span>
@@ -209,8 +293,7 @@ export default function Inscripciones() {
                   return (
                     <label key={g.id}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-all duration-150 ${seleccionado ? 'border-primary bg-primary-light' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
-                      <input type="checkbox" checked={seleccionado} onChange={() => toggleGrupo(g.id)}
-                        className="accent-primary w-4 h-4 shrink-0" />
+                      <input type="checkbox" checked={seleccionado} onChange={() => toggleGrupo(g.id)} className="accent-primary w-4 h-4 shrink-0" />
                       <span className={`text-sm font-medium ${seleccionado ? 'text-primary' : 'text-gray-700'}`}>{g.nombre}</span>
                       <span className="text-xs text-gray-400 ml-auto">{g.nivel} · cap. {g.capacidad_maxima}</span>
                     </label>

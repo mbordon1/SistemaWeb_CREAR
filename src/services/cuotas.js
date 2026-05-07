@@ -160,6 +160,41 @@ export async function marcarCuotasVencidas() {
 }
 
 /**
+ * Cancela (elimina) las cuotas pendientes y vencidas de un alumno.
+ * Se llama cuando el alumno ya no tiene ninguna inscripción activa.
+ */
+export async function cancelarCuotasPendientes(alumno_id) {
+  const { error } = await supabase
+    .from('cuotas')
+    .delete()
+    .eq('alumno_id', alumno_id)
+    .in('estado', ['pendiente', 'vencida'])
+  if (error) throw error
+}
+
+/**
+ * Historial completo de cuotas y pagos de un alumno, ordenado por mes descendente.
+ */
+export async function getHistorialPagosByAlumno(alumno_id) {
+  const { data: cuotas, error } = await supabase
+    .from('cuotas')
+    .select('id, mes, monto, estado, fecha_vencimiento')
+    .eq('alumno_id', alumno_id)
+    .order('mes', { ascending: false })
+  if (error) throw error
+  if (!cuotas?.length) return []
+
+  const cuotaIds = cuotas.map((c) => c.id)
+  const { data: pagos } = await supabase
+    .from('pagos')
+    .select('id, cuota_id, monto_pagado, fecha_pago, metodo')
+    .in('cuota_id', cuotaIds)
+
+  const pagosMap = Object.fromEntries((pagos ?? []).map((p) => [p.cuota_id, p]))
+  return cuotas.map((c) => ({ ...c, pago: pagosMap[c.id] ?? null }))
+}
+
+/**
  * Calcula el resumen de cuotas del mes actual para el dashboard u otros módulos.
  * @returns {{ total: number, pendiente: number, vencida: number, pagada: number, montoTotal: number }}
  */

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Pencil, Trash2, Search } from 'lucide-react'
+import { Pencil, Trash2, Search, History } from 'lucide-react'
 import { getAlumnos, updateAlumno, deleteAlumno } from '../services/alumnos'
+import { getHistorialPagosByAlumno } from '../services/cuotas'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Modal from '../components/ui/Modal'
@@ -25,6 +26,10 @@ export default function Alumnos() {
   const [errores, setErrores] = useState({})
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState(null)
+  const [modalHistorial, setModalHistorial] = useState(false)
+  const [alumnoHistorial, setAlumnoHistorial] = useState(null)
+  const [historial, setHistorial] = useState([])
+  const [loadingHistorial, setLoadingHistorial] = useState(false)
 
   useEffect(() => { cargarDatos() }, [])
 
@@ -79,6 +84,19 @@ export default function Alumnos() {
     } catch (err) {
       setErrores({ general: err.message ?? 'Error al guardar.' })
     } finally { setGuardando(false) }
+  }
+
+  async function abrirHistorial(alumno) {
+    setAlumnoHistorial(alumno)
+    setModalHistorial(true)
+    setLoadingHistorial(true)
+    try {
+      setHistorial(await getHistorialPagosByAlumno(alumno.id))
+    } catch {
+      setHistorial([])
+    } finally {
+      setLoadingHistorial(false)
+    }
   }
 
   async function handleEliminar(id) {
@@ -138,6 +156,7 @@ export default function Alumnos() {
                   </Td>
                   <Td className="text-right">
                     <div className="flex items-center justify-end gap-2">
+                      <button onClick={() => abrirHistorial(alumno)} title="Ver historial de pagos" className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"><History size={15} /></button>
                       <button onClick={() => abrirEditar(alumno)} className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary-light rounded-lg transition-colors"><Pencil size={15} /></button>
                       <button onClick={() => handleEliminar(alumno.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={15} /></button>
                     </div>
@@ -148,6 +167,40 @@ export default function Alumnos() {
           </Tbody>
         </Table>
       </div>
+
+      {/* Modal: Historial de pagos */}
+      <Modal isOpen={modalHistorial} onClose={() => setModalHistorial(false)}
+        title={alumnoHistorial ? `Historial — ${alumnoHistorial.apellido}, ${alumnoHistorial.nombre}` : 'Historial'} size="lg">
+        {loadingHistorial ? <Spinner className="py-8" /> : historial.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-8">No hay cuotas registradas para este alumno.</p>
+        ) : (
+          <div className="space-y-2 max-h-[28rem] overflow-y-auto pr-1">
+            {historial.map((c) => {
+              const ESTADO_COLOR = { pendiente: 'yellow', pagada: 'green', vencida: 'red' }
+              const mesLabel = new Date(c.mes + '-01T00:00:00').toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+              return (
+                <div key={c.id} className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 hover:bg-white transition-colors">
+                  <div>
+                    <p className="text-sm font-medium text-gray-800 capitalize">{mesLabel}</p>
+                    {c.pago && (
+                      <p className="text-xs text-gray-400">
+                        Pagado el {new Date(c.pago.fecha_pago + 'T00:00:00').toLocaleDateString('es-AR')} · {c.pago.metodo}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="text-sm font-semibold text-gray-700">${Number(c.monto).toLocaleString('es-AR')}</span>
+                    <Badge color={ESTADO_COLOR[c.estado] ?? 'gray'}>{c.estado}</Badge>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+        <div className="flex justify-end pt-3">
+          <Button variant="secondary" onClick={() => setModalHistorial(false)}>Cerrar</Button>
+        </div>
+      </Modal>
 
       <Modal isOpen={modalAbierto} onClose={() => setModalAbierto(false)} title="Editar Alumno" size="lg">
         <form onSubmit={handleSubmit} className="space-y-4">
