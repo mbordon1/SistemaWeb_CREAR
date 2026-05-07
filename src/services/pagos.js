@@ -54,6 +54,27 @@ export async function registrarPago(cuota_id, pago) {
   }
 }
 
+/**
+ * Devuelve los datos de pago y comprobante asociados a una cuota.
+ * Se usa para reimprimir recibos de cuotas ya pagadas.
+ */
+export async function getReciboByCuota(cuota_id) {
+  const { data: pago, error } = await supabase
+    .from('pagos')
+    .select('id, monto_pagado, fecha_pago, metodo')
+    .eq('cuota_id', cuota_id)
+    .maybeSingle()
+  if (error || !pago) return null
+
+  const { data: comprobante } = await supabase
+    .from('comprobantes')
+    .select('id, numero')
+    .eq('pago_id', pago.id)
+    .maybeSingle()
+
+  return { pago, comprobante }
+}
+
 export async function getComprobantes() {
   const { data, error } = await supabase
     .from('comprobantes')

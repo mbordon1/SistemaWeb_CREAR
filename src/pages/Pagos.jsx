@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { CreditCard, FileText, RefreshCw, CheckCircle2, ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { CreditCard, RefreshCw, CheckCircle2, ChevronLeft, ChevronRight, Search, Receipt } from 'lucide-react'
 import { getCuotasDelMes, generarCuotasDelMes, marcarCuotasVencidas } from '../services/cuotas'
-import { registrarPago } from '../services/pagos'
+import { registrarPago, getReciboByCuota } from '../services/pagos'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Select from '../components/ui/Select'
@@ -9,6 +9,7 @@ import Modal from '../components/ui/Modal'
 import { Table, Thead, Th, Tbody, Td } from '../components/ui/Table'
 import Badge from '../components/ui/Badge'
 import Spinner from '../components/ui/Spinner'
+import Recibo from '../components/Recibo'
 
 const ESTADO_COLOR = { pendiente: 'yellow', pagada: 'green', vencida: 'red' }
 
@@ -36,8 +37,8 @@ export default function Pagos() {
   const [cuotaSeleccionada, setCuotaSeleccionada] = useState(null)
   const [formPago, setFormPago] = useState({ monto_pagado: '', metodo: 'efectivo', fecha_pago: '' })
   const [guardando, setGuardando] = useState(false)
-  const [modalComprobante, setModalComprobante] = useState(false)
-  const [comprobante, setComprobante] = useState(null)
+  const [modalRecibo, setModalRecibo] = useState(false)
+  const [datosRecibo, setDatosRecibo] = useState(null)
 
   useEffect(() => {
     // Actualizar estados de cuotas vencidas al montar el módulo
@@ -98,17 +99,40 @@ export default function Pagos() {
         fecha_pago: formPago.fecha_pago,
       })
       setModalPago(false)
-      setCuotaSeleccionada(null)
       await cargar()
       if (res.comprobante) {
-        setComprobante(res.comprobante)
-        setModalComprobante(true)
+        setDatosRecibo({
+          alumno: cuotaSeleccionada.alumnos,
+          mes: cuotaSeleccionada.mes,
+          monto: formPago.monto_pagado,
+          metodo: formPago.metodo,
+          fecha_pago: formPago.fecha_pago,
+          numero_comprobante: res.comprobante.numero,
+        })
+        setCuotaSeleccionada(null)
+        setModalRecibo(true)
+      } else {
+        setCuotaSeleccionada(null)
       }
     } catch (err) {
       alert(err.message)
     } finally {
       setGuardando(false)
     }
+  }
+
+  async function verRecibo(cuota) {
+    const datos = await getReciboByCuota(cuota.id)
+    if (!datos) return
+    setDatosRecibo({
+      alumno: cuota.alumnos,
+      mes: cuota.mes,
+      monto: datos.pago.monto_pagado,
+      metodo: datos.pago.metodo,
+      fecha_pago: datos.pago.fecha_pago,
+      numero_comprobante: datos.comprobante?.numero ?? '—',
+    })
+    setModalRecibo(true)
   }
 
   // Conteos por estado para las tabs
@@ -278,9 +302,13 @@ export default function Pagos() {
                   </Td>
                   <Td><Badge color={ESTADO_COLOR[c.estado] ?? 'gray'}>{c.estado}</Badge></Td>
                   <Td className="text-right">
-                    {c.estado !== 'pagada' && (
+                    {c.estado !== 'pagada' ? (
                       <Button size="sm" variant="secondary" onClick={() => abrirPago(c)}>
                         <CreditCard size={14} />Registrar pago
+                      </Button>
+                    ) : (
+                      <Button size="sm" variant="secondary" onClick={() => verRecibo(c)}>
+                        <Receipt size={14} />Ver recibo
                       </Button>
                     )}
                   </Td>
@@ -336,26 +364,10 @@ export default function Pagos() {
         </form>
       </Modal>
 
-      {/* Modal: Comprobante */}
-      <Modal isOpen={modalComprobante} onClose={() => setModalComprobante(false)} title="Pago registrado">
-        {comprobante && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-center py-4">
-              <div className="bg-emerald-50 rounded-full p-4">
-                <FileText size={32} className="text-emerald-500" />
-              </div>
-            </div>
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-400">N° de comprobante:</span>
-                <span className="font-bold text-gray-800 text-base">{comprobante.numero}</span>
-              </div>
-            </div>
-            <p className="text-xs text-center text-gray-400">El pago fue registrado correctamente.</p>
-            <div className="flex justify-end">
-              <Button onClick={() => setModalComprobante(false)}>Cerrar</Button>
-            </div>
-          </div>
+      {/* Modal: Recibo de pago */}
+      <Modal isOpen={modalRecibo} onClose={() => setModalRecibo(false)} title="Recibo de Pago" size="lg">
+        {datosRecibo && (
+          <Recibo datos={datosRecibo} onClose={() => setModalRecibo(false)} />
         )}
       </Modal>
     </div>
