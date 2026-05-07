@@ -1,22 +1,21 @@
 import { useEffect, useState } from 'react'
-import { Users, UsersRound, AlertCircle, ClipboardList, TrendingUp } from 'lucide-react'
+import { Users, UsersRound, AlertCircle, ClipboardList, TrendingUp, CheckCircle2 } from 'lucide-react'
 import { getDashboardStats } from '../services/dashboard'
 import Spinner from '../components/ui/Spinner'
 import Badge from '../components/ui/Badge'
+import EmptyState from '../components/ui/EmptyState'
 
-function StatCard({ label, value, subtitle, icon: Icon, color, bg }) {
+function StatCard({ label, value, subtitle, icon: Icon, iconBg, iconColor, numColor, borderColor }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-card hover:shadow-card-md transition-shadow duration-200">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
-          <p className="text-3xl font-bold mt-2 text-gray-800">{value}</p>
-          {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+    <div className={`bg-white rounded-2xl border border-gray-100 border-l-4 ${borderColor} p-5 shadow-card hover:shadow-card-md hover:-translate-y-0.5 transition-all duration-200`}>
+      <div className="flex items-start justify-between mb-3">
+        <div className={`p-2.5 rounded-xl ${iconBg}`}>
+          <Icon size={18} className={iconColor} />
         </div>
-        <div className={`p-3 rounded-xl ${bg} shrink-0`}>
-          <Icon size={20} className={color} />
-        </div>
+        <p className={`text-3xl font-black tabular-nums ${numColor}`}>{value}</p>
       </div>
+      <p className="text-sm font-semibold text-gray-700 leading-tight">{label}</p>
+      {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
     </div>
   )
 }
@@ -29,6 +28,10 @@ function Avatar({ nombre, apellido }) {
       {initials}
     </div>
   )
+}
+
+function mesLabel(mes) {
+  return new Date(mes + '-01T00:00:00').toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
 }
 
 export default function Dashboard() {
@@ -65,8 +68,8 @@ export default function Dashboard() {
 
       {/* Greeting */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-800 font-display">¡Bienvenida! 👋</h1>
-        <p className="text-sm text-gray-400 mt-1">Aquí tenés un resumen de lo que sucede en tu academia hoy.</p>
+        <h1 className="text-2xl font-bold text-gray-800 font-display">¡Bienvenida!</h1>
+        <p className="text-sm text-gray-400 mt-1">Resumen general de la Academia de Danzas CREAR.</p>
       </div>
 
       {/* Stat Cards */}
@@ -74,22 +77,26 @@ export default function Dashboard() {
         <StatCard
           icon={Users} label="Total alumnos" value={stats.alumnos}
           subtitle="Registrados en el sistema"
-          bg="bg-primary-light" color="text-primary"
+          iconBg="bg-primary-light" iconColor="text-primary"
+          numColor="text-primary" borderColor="border-l-primary"
         />
         <StatCard
           icon={UsersRound} label="Grupos activos" value={stats.grupos}
           subtitle="Clases en curso"
-          bg="bg-purple-50" color="text-purple-600"
+          iconBg="bg-violet-50" iconColor="text-violet-500"
+          numColor="text-violet-500" borderColor="border-l-violet-400"
         />
         <StatCard
           icon={AlertCircle} label="Cuotas pendientes" value={stats.cuotasPendientes}
           subtitle="Pendientes + vencidas"
-          bg="bg-amber-50" color="text-amber-500"
+          iconBg="bg-amber-50" iconColor="text-amber-500"
+          numColor="text-amber-500" borderColor="border-l-amber-400"
         />
         <StatCard
           icon={ClipboardList} label="Con clases activas" value={stats.alumnosConClases}
-          subtitle="Alumnos únicos con grupos asignados"
-          bg="bg-emerald-50" color="text-emerald-600"
+          subtitle="Alumnos únicos inscriptos"
+          iconBg="bg-emerald-50" iconColor="text-emerald-600"
+          numColor="text-emerald-600" borderColor="border-l-emerald-400"
         />
       </div>
 
@@ -100,20 +107,15 @@ export default function Dashboard() {
         <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-card p-6">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="text-sm font-semibold text-gray-800">Últimas Inscripciones</h3>
-              <p className="text-xs text-gray-400 mt-0.5">Alumnos incorporados recientemente</p>
+              <h3 className="text-sm font-semibold text-gray-800">Últimas inscripciones</h3>
+              <p className="text-xs text-gray-400 mt-0.5">Incorporaciones recientes</p>
             </div>
             <TrendingUp size={16} className="text-primary" />
           </div>
           {inscripcionesRecientes.length === 0 ? (
-            <div className="py-10 text-center">
-              <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                <ClipboardList size={20} className="text-gray-300" />
-              </div>
-              <p className="text-sm text-gray-400">No hay inscripciones activas</p>
-            </div>
+            <EmptyState icon={ClipboardList} title="Sin inscripciones activas" />
           ) : (
-            <ul className="space-y-3">
+            <ul className="space-y-1">
               {inscripcionesRecientes.map((i) => (
                 <li key={i.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 transition-colors">
                   <Avatar nombre={i.alumnos?.nombre} apellido={i.alumnos?.apellido} />
@@ -134,7 +136,7 @@ export default function Dashboard() {
 
         {/* Cuotas pendientes */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-card p-6">
-          <div className="flex items-center gap-2 mb-5">
+          <div className="flex items-center gap-2.5 mb-5">
             <div className="p-1.5 bg-amber-50 rounded-lg">
               <AlertCircle size={14} className="text-amber-500" />
             </div>
@@ -144,26 +146,26 @@ export default function Dashboard() {
             </div>
           </div>
           {cuotasPendientes.length === 0 ? (
-            <div className="py-10 text-center">
-              <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                <span className="text-emerald-500 text-lg">✓</span>
+            <div className="flex flex-col items-center py-10 text-center">
+              <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center mb-3">
+                <CheckCircle2 size={20} className="text-emerald-400" />
               </div>
-              <p className="text-sm font-medium text-emerald-600">¡Todo al día!</p>
+              <p className="text-sm font-semibold text-emerald-600">¡Todo al día!</p>
               <p className="text-xs text-gray-400 mt-1">No hay cuotas pendientes</p>
             </div>
           ) : (
-            <ul className="space-y-2.5">
+            <ul className="space-y-2">
               {cuotasPendientes.map((c) => (
                 <li key={c.id} className="flex items-center justify-between gap-2 p-2.5 rounded-xl hover:bg-gray-50 transition-colors">
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-gray-800 truncate">
-                      {c.alumnos?.nombre} {c.alumnos?.apellido}
+                      {c.alumnos?.apellido}, {c.alumnos?.nombre}
                     </p>
-                    <p className="text-xs text-gray-400">{c.mes}</p>
+                    <p className="text-xs text-gray-400 capitalize">{mesLabel(c.mes)}</p>
                   </div>
                   <div className="text-right shrink-0 space-y-1">
-                    <p className="text-sm font-semibold text-gray-800">${c.monto?.toLocaleString('es-AR')}</p>
-                    <Badge color={c.estado === 'vencida' ? 'red' : 'yellow'}>{c.estado}</Badge>
+                    <p className="text-sm font-semibold text-gray-800">${Number(c.monto).toLocaleString('es-AR')}</p>
+                    <Badge color={c.estado === 'vencida' ? 'red' : 'yellow'} dot>{c.estado}</Badge>
                   </div>
                 </li>
               ))}

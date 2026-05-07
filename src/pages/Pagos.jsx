@@ -162,7 +162,7 @@ export default function Pagos() {
   })
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 max-w-7xl mx-auto">
 
       {/* Navegación de mes */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -269,7 +269,7 @@ export default function Pagos() {
         </div>
 
         {loading ? <Spinner className="py-12" /> : (
-          <Table>
+          <Table plain>
             <Thead>
               <tr>
                 <Th>Alumno</Th>
@@ -301,7 +301,7 @@ export default function Pagos() {
                       ? new Date(c.fecha_vencimiento + 'T00:00:00').toLocaleDateString('es-AR')
                       : '—'}
                   </Td>
-                  <Td><Badge color={ESTADO_COLOR[c.estado] ?? 'gray'}>{c.estado}</Badge></Td>
+                  <Td><Badge color={ESTADO_COLOR[c.estado] ?? 'gray'} dot>{c.estado}</Badge></Td>
                   <Td className="text-right">
                     {c.estado !== 'pagada' ? (
                       <Button size="sm" variant="secondary" onClick={() => abrirPago(c)}>

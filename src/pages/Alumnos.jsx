@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Pencil, Trash2, Search, History } from 'lucide-react'
+import { Pencil, Trash2, Search, History, Users } from 'lucide-react'
 import { getAlumnos, updateAlumno, deleteAlumno } from '../services/alumnos'
 import { getHistorialPagosByAlumno } from '../services/cuotas'
 import { useToast } from '../context/ToastContext'
@@ -7,6 +7,7 @@ import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
+import EmptyState from '../components/ui/EmptyState'
 import { Table, Thead, Th, Tbody, Td } from '../components/ui/Table'
 import Badge from '../components/ui/Badge'
 import Spinner from '../components/ui/Spinner'
@@ -123,7 +124,7 @@ export default function Alumnos() {
   if (loading) return <Spinner className="mt-20" />
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 max-w-7xl mx-auto">
       {error && <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm">{error}</div>}
 
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
@@ -136,15 +137,15 @@ export default function Alumnos() {
         <p className="text-xs text-gray-400">Los alumnos se dan de alta desde Inscripciones</p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 shadow-card">
-        <div className="px-5 py-3 border-b border-gray-100">
-          <p className="text-sm text-gray-400">{alumnosFiltrados.length} alumno{alumnosFiltrados.length !== 1 ? 's' : ''}</p>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-card overflow-hidden">
+        <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+          <p className="text-sm font-medium text-gray-500">{alumnosFiltrados.length} alumno{alumnosFiltrados.length !== 1 ? 's' : ''}</p>
         </div>
-        <Table>
+        <Table plain>
           <Thead><tr><Th>Nombre</Th><Th>DNI</Th><Th>Teléfono</Th><Th>Email</Th><Th>Grupos</Th><Th className="text-right">Acciones</Th></tr></Thead>
           <Tbody>
             {alumnosFiltrados.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-gray-400">No se encontraron alumnos</td></tr>
+              <tr><td colSpan={6}><EmptyState icon={Users} title={busqueda ? 'Sin resultados' : 'No hay alumnos registrados'} description={busqueda ? 'Probá con otro nombre o DNI.' : 'Los alumnos se crean al registrar una inscripción.'} /></td></tr>
             ) : alumnosFiltrados.map((alumno) => {
               const gruposActivos = (alumno.inscripciones ?? []).filter((i) => i.estado === 'activa')
               return (
@@ -160,7 +161,7 @@ export default function Alumnos() {
                     {gruposActivos.length === 0
                       ? <Badge color="gray">Sin grupo</Badge>
                       : <div className="flex flex-wrap gap-1">
-                          {gruposActivos.map((i) => <Badge key={i.id} color="blue">{i.grupos?.nombre}</Badge>)}
+                          {gruposActivos.map((i) => <Badge key={i.id} color="blue" dot>{i.grupos?.nombre}</Badge>)}
                         </div>
                     }
                   </Td>

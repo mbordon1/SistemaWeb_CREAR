@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Pencil, Trash2, TrendingUp } from 'lucide-react'
+import { Plus, Pencil, Trash2, TrendingUp, Search, UsersRound } from 'lucide-react'
 import { getGrupos, createGrupo, updateGrupo, deleteGrupo } from '../services/grupos'
 import { getProfesores } from '../services/profesores'
 import { calcularMontoActual } from '../services/cuotas'
@@ -9,6 +9,7 @@ import Input from '../components/ui/Input'
 import Select from '../components/ui/Select'
 import Modal from '../components/ui/Modal'
 import ConfirmModal from '../components/ui/ConfirmModal'
+import EmptyState from '../components/ui/EmptyState'
 import { Table, Thead, Th, Tbody, Td } from '../components/ui/Table'
 import Badge from '../components/ui/Badge'
 import Spinner from '../components/ui/Spinner'
@@ -35,6 +36,7 @@ export default function Grupos() {
   const [errores, setErrores] = useState({})
   const [guardando, setGuardando] = useState(false)
   const [confirmEliminar, setConfirmEliminar] = useState(null)
+  const [busqueda, setBusqueda] = useState('')
 
   useEffect(() => { cargarDatos() }, [])
 
@@ -103,11 +105,24 @@ export default function Grupos() {
     }
   }
 
+  const gruposFiltrados = grupos.filter((g) => {
+    const txt = busqueda.toLowerCase()
+    return !txt || g.nombre?.toLowerCase().includes(txt) || g.nivel?.toLowerCase().includes(txt)
+  })
+
   if (loading) return <Spinner className="mt-20" />
 
   return (
-    <div className="space-y-5">
-      <div className="flex justify-end"><Button onClick={abrirCrear}><Plus size={16} />Nuevo Grupo</Button></div>
+    <div className="space-y-5 max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="relative w-full sm:w-72">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input type="text" placeholder="Buscar grupo o nivel..." value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+        </div>
+        <Button onClick={abrirCrear}><Plus size={16} />Nuevo Grupo</Button>
+      </div>
 
       <Table>
         <Thead>
@@ -117,9 +132,9 @@ export default function Grupos() {
           </tr>
         </Thead>
         <Tbody>
-          {grupos.length === 0 ? (
-            <tr><td colSpan={7} className="px-4 py-10 text-center text-sm text-gray-400">No hay grupos</td></tr>
-          ) : grupos.map((g) => {
+          {gruposFiltrados.length === 0 ? (
+            <tr><td colSpan={7}><EmptyState icon={UsersRound} title={busqueda ? 'Sin resultados' : 'No hay grupos creados'} description={busqueda ? 'Probá con otro nombre.' : 'Creá el primer grupo con el botón "Nuevo Grupo".'} /></td></tr>
+          ) : gruposFiltrados.map((g) => {
             const cuotaActual = g.cuota_base_mensual > 0
               ? calcularMontoActual(g.cuota_base_mensual, g.porcentaje_aumento_trimestral, g.fecha_precio_base, MES_ACTUAL)
               : null

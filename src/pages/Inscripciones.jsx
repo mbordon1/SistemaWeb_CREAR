@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Search } from 'lucide-react'
+import { Plus, Search, ClipboardList } from 'lucide-react'
 import { getInscripciones, createInscripcion, createInscripcionConAlumno, updateInscripcion } from '../services/inscripciones'
 import { cancelarCuotasPendientes } from '../services/cuotas'
 import { getAlumnos } from '../services/alumnos'
@@ -9,6 +9,7 @@ import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Select from '../components/ui/Select'
 import Modal from '../components/ui/Modal'
+import EmptyState from '../components/ui/EmptyState'
 import { Table, Thead, Th, Tbody, Td } from '../components/ui/Table'
 import Badge from '../components/ui/Badge'
 import Spinner from '../components/ui/Spinner'
@@ -157,7 +158,7 @@ export default function Inscripciones() {
   if (loading) return <Spinner className="mt-20" />
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 max-w-7xl mx-auto">
 
       {/* Barra superior */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -207,15 +208,13 @@ export default function Inscripciones() {
           </span>
         </div>
 
-        <Table>
+        <Table plain>
           <Thead>
             <tr><Th>Alumno</Th><Th>Grupo</Th><Th>Nivel</Th><Th>Fecha</Th><Th>Estado</Th><Th>Cambiar estado</Th></tr>
           </Thead>
           <Tbody>
             {inscripcionesFiltradas.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-gray-400">
-                {busqueda ? 'Sin resultados para la búsqueda' : 'No hay inscripciones'}
-              </td></tr>
+              <tr><td colSpan={6}><EmptyState icon={ClipboardList} title={busqueda ? 'Sin resultados' : 'No hay inscripciones'} description={busqueda ? 'Probá con otro nombre o grupo.' : 'Registrá la primera inscripción.'} /></td></tr>
             ) : inscripcionesFiltradas.map((i) => (
               <tr key={i.id} className="hover:bg-gray-50/70 transition-colors">
                 <Td>
@@ -225,7 +224,7 @@ export default function Inscripciones() {
                 <Td>{i.grupos?.nombre}</Td>
                 <Td>{i.grupos?.nivel}</Td>
                 <Td>{i.fecha ? new Date(i.fecha).toLocaleDateString('es-AR') : '—'}</Td>
-                <Td><Badge color={ESTADO_COLOR[i.estado] ?? 'gray'}>{i.estado}</Badge></Td>
+                <Td><Badge color={ESTADO_COLOR[i.estado] ?? 'gray'} dot>{i.estado}</Badge></Td>
                 <Td>
                   <select
                     value={i.estado}
