@@ -53,6 +53,14 @@ export async function updateAlumno(id, cambios) {
 }
 
 export async function deleteAlumno(id) {
+  // Bloquear si tiene inscripciones o cuotas asociadas
+  const [{ count: inscCount }, { count: cuotaCount }] = await Promise.all([
+    supabase.from('inscripciones').select('*', { count: 'exact', head: true }).eq('alumno_id', id),
+    supabase.from('cuotas').select('*', { count: 'exact', head: true }).eq('alumno_id', id),
+  ])
+  if ((inscCount ?? 0) > 0) throw new Error('No se puede eliminar: el alumno tiene inscripciones registradas.')
+  if ((cuotaCount ?? 0) > 0) throw new Error('No se puede eliminar: el alumno tiene cuotas registradas.')
+
   const { error } = await supabase.from('alumnos').delete().eq('id', id)
   if (error) throw error
 }
