@@ -1,9 +1,10 @@
 const COLORS = {
-  green:  { cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200', dot: 'bg-emerald-400' },
-  red:    { cls: 'bg-red-50 text-red-600 ring-1 ring-red-200',             dot: 'bg-red-400' },
-  yellow: { cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',       dot: 'bg-amber-400' },
-  blue:   { cls: 'bg-primary-light text-primary ring-1 ring-purple-200',   dot: 'bg-primary' },
-  gray:   { cls: 'bg-gray-100 text-gray-500 ring-1 ring-gray-200',         dot: 'bg-gray-400' },
+  green:  { cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',  dot: 'bg-emerald-400' },
+  red:    { cls: 'bg-red-50 text-red-600 ring-1 ring-red-200',              dot: 'bg-red-400' },
+  yellow: { cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',        dot: 'bg-amber-400' },
+  blue:   { cls: 'bg-primary-light text-primary ring-1 ring-purple-200',    dot: 'bg-primary' },
+  teal:   { cls: 'bg-teal-light text-teal-dark ring-1 ring-teal/30',        dot: 'bg-teal' },
+  gray:   { cls: 'bg-gray-100 text-gray-500 ring-1 ring-gray-200',          dot: 'bg-gray-400' },
 }
 
 export default function Badge({ children, color = 'gray', dot = false, className = '' }) {

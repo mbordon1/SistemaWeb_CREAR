@@ -1,7 +1,20 @@
 import { supabase } from '../lib/supabase'
 
+function buildMonthlyChart(rows) {
+  const months = {}
+  rows.forEach(({ mes, monto, estado }) => {
+    if (!months[mes]) months[mes] = { mes, cobrado: 0, pendiente: 0 }
+    if (estado === 'pagada') months[mes].cobrado += Number(monto)
+    else months[mes].pendiente += Number(monto)
+  })
+  return Object.values(months).sort((a, b) => a.mes.localeCompare(b.mes))
+}
+
 export async function getDashboardStats() {
-  // Primera ronda: counts y listas raw (sin FK joins para evitar dependencia de constraints)
+  const sixMonthsAgo = new Date()
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5)
+  const fromMonth = `${sixMonthsAgo.getFullYear()}-${String(sixMonthsAgo.getMonth() + 1).padStart(2, '0')}`
+
   const [
     { count: totalAlumnos },
     { count: totalGrupos },
@@ -9,11 +22,11 @@ export async function getDashboardStats() {
     { data: alumnosActivosRaw },
     { data: inscRecientesRaw },
     { data: cuotasRaw },
+    { data: cuotasMeses },
   ] = await Promise.all([
     supabase.from('alumnos').select('*', { count: 'exact', head: true }),
     supabase.from('grupos').select('*', { count: 'exact', head: true }),
     supabase.from('cuotas').select('*', { count: 'exact', head: true }).in('estado', ['pendiente', 'vencida']),
-    // Solo alumno_id para contar únicos; no select(*) para minimizar payload
     supabase.from('inscripciones').select('alumno_id').eq('estado', 'activa'),
     supabase.from('inscripciones')
       .select('id, fecha, alumno_id, grupo_id')
@@ -24,13 +37,15 @@ export async function getDashboardStats() {
       .select('id, mes, monto, estado, alumno_id')
       .in('estado', ['pendiente', 'vencida'])
       .limit(5),
+    supabase.from('cuotas')
+      .select('mes, monto, estado')
+      .in('estado', ['pagada', 'pendiente', 'vencida'])
+      .gte('mes', fromMonth)
+      .order('mes', { ascending: true }),
   ])
 
-  // Alumnos únicos con al menos una inscripción activa.
-  // Un alumno en 3 grupos tiene 3 registros → se cuenta UNA sola vez.
   const alumnosConClases = new Set((alumnosActivosRaw ?? []).map((i) => i.alumno_id)).size
 
-  // Segunda ronda: resolver nombres sin depender de FK constraints de Supabase
   const rawInsc = inscRecientesRaw ?? []
   const rawCuotas = cuotasRaw ?? []
 
@@ -63,5 +78,6 @@ export async function getDashboardStats() {
       ...c,
       alumnos: alumnosMap[c.alumno_id] ?? null,
     })),
+    cobrosmensuales: buildMonthlyChart(cuotasMeses ?? []),
   }
 }

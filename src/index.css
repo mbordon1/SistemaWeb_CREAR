@@ -11,13 +11,14 @@
 @layer base {
   body {
     font-family: 'Inter', system-ui, sans-serif;
-    background-color: #F8F9FC;
+    background-color: #F4F2FF;
     color: #1E1B4B;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   *::-webkit-scrollbar { width: 5px; height: 5px; }
   *::-webkit-scrollbar-track { background: transparent; }
   *::-webkit-scrollbar-thumb { background: #C4B5FD; border-radius: 99px; }
-  *::-webkit-scrollbar-thumb:hover { background: #a78bfa; }
+  *::-webkit-scrollbar-thumb:hover { background: #7C3AED; }
 }

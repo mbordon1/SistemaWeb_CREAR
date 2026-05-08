@@ -48,7 +48,7 @@ export default function Sidebar() {
 
   return (
     <aside className="w-60 shrink-0 flex flex-col relative overflow-hidden"
-      style={{ background: 'linear-gradient(160deg, #1E1147 0%, #2D1B69 100%)' }}>
+      style={{ background: 'linear-gradient(160deg, #2E1065 0%, #3B0764 100%)' }}>
 
 
       {/* Logo */}
