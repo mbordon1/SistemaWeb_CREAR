@@ -25,9 +25,13 @@ export default function Asistencia() {
     setLoading(true); setGuardado(false)
     try {
       const { data: inscripciones } = await supabase
-        .from('inscripciones').select('alumnos(id, nombre, apellido)')
+        .from('inscripciones').select('alumno_id')
         .eq('grupo_id', grupoId).eq('estado', 'activa')
-      const alumnosDelGrupo = inscripciones?.map((i) => i.alumnos) ?? []
+      const alumnoIds = (inscripciones ?? []).map((i) => i.alumno_id)
+      const { data: alumnosData } = alumnoIds.length
+        ? await supabase.from('alumnos').select('id, nombre, apellido').in('id', alumnoIds)
+        : { data: [] }
+      const alumnosDelGrupo = alumnosData ?? []
       setAlumnos(alumnosDelGrupo)
       const registros = await getAsistenciasByGrupoFecha(grupoId, fecha)
       const mapa = {}

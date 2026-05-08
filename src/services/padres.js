@@ -47,8 +47,16 @@ export async function desvincularPadreAlumno(padre_id, alumno_id) {
 export async function getPadresByAlumno(alumno_id) {
   const { data, error } = await supabase
     .from('alumnos_padres')
-    .select('padres (id, nombre, apellido, telefono, email)')
+    .select('padre_id')
     .eq('alumno_id', alumno_id)
   if (error) throw error
-  return data.map((d) => d.padres)
+
+  const padreIds = (data ?? []).map((d) => d.padre_id)
+  if (!padreIds.length) return []
+
+  const { data: padres } = await supabase
+    .from('padres')
+    .select('id, nombre, apellido, telefono, email')
+    .in('id', padreIds)
+  return padres ?? []
 }
